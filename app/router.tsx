@@ -1,10 +1,11 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
-
-// Dummy screens for demonstration
 import { Button, Text, View } from 'react-native';
+import SecureHeader from '../components/secure-header';
 import { RouterTexts } from '../components/texts/router-texts';
 import ChangePassword from './auth/change-password';
+import Logout from './auth/logout';
+import Profile from './profile';
 
 const PublicScreen = () => (
   <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -24,15 +25,37 @@ const Stack = createNativeStackNavigator();
 
 type RouterProps = {
   hasAuthorizationToken: boolean;
+  initialRouteName?: string;
 };
 
-const Router: React.FC<RouterProps> = ({ hasAuthorizationToken }) => {
+const Router: React.FC<RouterProps> = ({ hasAuthorizationToken, initialRouteName }) => {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator initialRouteName={initialRouteName}>
       {hasAuthorizationToken ? (
         <>
-          <Stack.Screen name="Private" component={PrivateScreen} />
-          <Stack.Screen name="ChangePassword" component={ChangePassword} />
+          <Stack.Screen
+            name="Profile"
+            component={Profile}
+            options={{
+              headerRight: () => <SecureHeader />,
+              title: 'Profil',
+            }}
+          />
+          <Stack.Screen
+            name="ChangePassword"
+            component={ChangePassword}
+            options={{
+              headerRight: () => <SecureHeader />,
+              title: 'Şifre Değiştir',
+            }}
+          />
+          <Stack.Screen
+            name="Logout"
+            component={Logout}
+            options={{
+              headerShown: false,
+            }}
+          />
         </>
       ) : (
         <Stack.Screen name="Public" component={PublicScreen} />
@@ -43,9 +66,14 @@ const Router: React.FC<RouterProps> = ({ hasAuthorizationToken }) => {
 
 export default Router;
 
-// routes.ts
+// Route constants
 export const ROUTES = {
+  INDEX: '/',
   LOGIN: '/auth/login',
   LOGOUT: '/auth/logout',
-  // diğer route'lar...
-};
+  FORGOT_PASSWORD: '/auth/forgot-password',
+  CHANGE_PASSWORD: '/auth/change-password',
+  VERIFY_EMAIL: '/auth/verify-email',
+  DASHBOARD: '/dashboard/dashboard',
+  PROFILE: '/profile',
+} as const;

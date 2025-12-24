@@ -1,41 +1,60 @@
 import { LoginTexts } from '@/components/texts/login-texts';
-import React, { useState } from 'react';
-import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Image, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import appConfig from '../../app.json';
+import { getCookie, setCookie } from '../../utils/cookies';
+import { ROUTES } from '../router';
 
 
-interface LoginProps {
-  onLogin: (userType: 'student' | 'other', username: string, password: string) => void;
-}
-
-const Login: React.FC<LoginProps> = ({ onLogin }) => {
+const Login: React.FC = () => {
+  const router = useRouter();
   const [userType, setUserType] = useState<'student' | 'other'>('student');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isChecking, setIsChecking] = useState(true);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const slideAnim = useRef(new Animated.Value(300)).current;
   const styles = themedStyles('light');
+  // Resolve local logo asset so web gets the correct served URL
+  const localLogo = require('../../assets/images/favicon.png');
+  let logoUri: string | undefined;
+  if (Platform.OS === 'web') {
+    try {
+      const resolver = (Image as any).resolveAssetSource;
+      const resolved = typeof resolver === 'function' ? resolver(localLogo) : null;
+      logoUri = resolved?.uri ?? (localLogo?.uri as string) ?? (localLogo as any)?.default ?? undefined;
+    } catch (_e) {
+      logoUri = (localLogo as any)?.uri ?? (localLogo as any)?.default ?? undefined;
+    }
+  }
 
-  // JWT token örneği, gerçek uygulamada bunu güvenli şekilde alın
-  const jwtToken = 'YOUR_JWT_TOKEN_HERE';
+  useEffect(() => {
+    // Eğer kullanıcı zaten giriş yapmışsa dashboard'a yönlendir
+    const timer = setTimeout(() => {
+      const token = getCookie('accessToken');
+      if (token) {
+        router.replace(ROUTES.DASHBOARD);
+      } else {
+        setIsChecking(false);
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [router]);
 
   // Store token in memory for demo; use secure storage in production
   const [accessToken, setAccessToken] = useState<string | null>(null);
 
-  // Get API base URL from app.json (expo config)
+  // Get API base URL and cookie expiration from app.json (expo config)
   const API_BASE_URL = appConfig?.expo?.apiBaseUrl || 'http://localhost:5249/api';
-
-  // Helper to get token for future requests
-  const getAuthHeaders = () => {
-    // Try to get from state, fallback to localStorage
-    const token = accessToken || (typeof window !== 'undefined' && window.localStorage ? window.localStorage.getItem('accessToken') : null);
-    if (token) {
-      return {
-        'Authorization': `Bearer ${token}`,
-      };
-    }
-    return {};
-  };
+  const COOKIE_EXPIRATION_MINUTES = appConfig?.expo?.cookieExpirationMinutes || 60;
 
   const handleLoginPress = async () => {
+    if (isLoggingIn || !username || !password) return;
+    
+    setIsLoggingIn(true);
     try {
       // If username or password is empty, send null as in the curl example
       const body = {
@@ -53,23 +72,71 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         const data = await response.json();
         if (data?.data?.accessToken) {
           setAccessToken(data.data.accessToken);
-          // Store in localStorage for persistence
-          if (typeof window !== 'undefined' && window.localStorage) {
-            window.localStorage.setItem('accessToken', data.data.accessToken);
-          }
+          // Store in cookie with expiration from app.json
+          setCookie('accessToken', data.data.accessToken, COOKIE_EXPIRATION_MINUTES);
         }
         console.log('Login successful: ', data);
-        onLogin(userType, username, password);
+        router.replace(ROUTES.DASHBOARD);
       } else {
+        const errorData = await response.json().catch(() => null);
+        const message = errorData?.message || 'Kullanıcı adı veya şifre hatalı';
+        setErrorMessage(message);
+        slideAnim.setValue(300);
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          useNativeDriver: true,
+          tension: 65,
+          friction: 8,
+        }).start();
+        setTimeout(() => {
+          Animated.timing(slideAnim, {
+            toValue: 300,
+            duration: 300,
+            useNativeDriver: true,
+          }).start(() => setErrorMessage(''));
+        }, 5000);
         console.log('Login failed');
+        setIsLoggingIn(false);
       }
     } catch (e) {
+      setErrorMessage('Bağlantı hatası. Lütfen tekrar deneyin.');
+      slideAnim.setValue(300);
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 8,
+      }).start();
+      setTimeout(() => {
+        Animated.timing(slideAnim, {
+          toValue: 300,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => setErrorMessage(''));
+      }, 5000);
       console.log('Error during login: ', e);
+      setIsLoggingIn(false);
     }
   };
 
+  if (isChecking) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ fontSize: 18, color: '#666' }}>Yükleniyor...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
+      <View style={{ marginBottom: 12, alignItems: 'center' }}>
+        {Platform.OS === 'web' ? (
+          // @ts-ignore - use resolved asset URI for web
+          <img src={logoUri} alt="AEU OBS" title="AEU OBS" style={{ width: 120, height: 120, objectFit: 'contain' }} />
+        ) : (
+          <Image source={localLogo} style={{ width: 120, height: 120 }} resizeMode="contain" />
+        )}
+      </View>
       <Text style={styles.title}>{LoginTexts.title}</Text>
       <View style={styles.switchContainer}>
         <TouchableOpacity
@@ -92,6 +159,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         value={username}
         onChangeText={setUsername}
         autoCapitalize="none"
+        returnKeyType="next"
+        editable={!isLoggingIn}
       />
       <TextInput
         style={styles.input}
@@ -100,13 +169,24 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        returnKeyType="go"
+        onSubmitEditing={handleLoginPress}
+        editable={!isLoggingIn}
       />
       <TouchableOpacity
-        style={styles.loginButton}
+        style={[styles.loginButton, (isLoggingIn || !username || !password) && styles.loginButtonDisabled]}
         onPress={handleLoginPress}
+        disabled={isLoggingIn || !username || !password}
       >
-        <Text style={styles.loginButtonText}>{LoginTexts.login}</Text>
+        <Text style={styles.loginButtonText}>
+          {isLoggingIn ? 'Giriş yapılıyor...' : LoginTexts.login}
+        </Text>
       </TouchableOpacity>
+      {errorMessage && (
+        <Animated.View style={[styles.errorToast, { transform: [{ translateX: slideAnim }] }]}>
+          <Text style={styles.errorToastText}>{errorMessage}</Text>
+        </Animated.View>
+      )}
     </View>
   );
 };
@@ -165,10 +245,40 @@ const themedStyles = (_theme: 'light') =>
       borderRadius: 8,
       alignItems: 'center',
     },
+    loginButtonDisabled: {
+      backgroundColor: '#999',
+      opacity: 0.6,
+    },
     loginButtonText: {
       color: '#fff',
       fontWeight: 'bold',
       fontSize: 18,
+    },
+    errorToast: {
+      position: 'absolute',
+      top: 20,
+      right: 0,
+      width: '25%',
+      minWidth: 300,
+      backgroundColor: '#fff',
+      borderLeftWidth: 5,
+      borderLeftColor: '#dc3545',
+      paddingVertical: 20,
+      paddingHorizontal: 24,
+      borderTopLeftRadius: 10,
+      borderBottomLeftRadius: 10,
+      shadowColor: '#000',
+      shadowOffset: { width: -2, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+    errorToastText: {
+      color: '#dc3545',
+      fontSize: 15,
+      textAlign: 'left',
+      fontWeight: 'bold',
+      lineHeight: 22,
     },
   });
 

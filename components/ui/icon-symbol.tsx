@@ -1,10 +1,10 @@
 // Fallback for using MaterialIcons on Android and web.
 
+import Feather from '@expo/vector-icons/Feather';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SymbolWeight } from 'expo-symbols';
 import { ComponentProps } from 'react';
 import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
-import Feather from 'react-native-vector-icons/Feather';
 
 type IconMapping = Record<string, ComponentProps<typeof MaterialIcons>['name']>;
 
@@ -15,6 +15,7 @@ const MAPPING = {
   'chevron.right': { type: 'material', name: 'chevron-right' },
   'sun': { type: 'feather', name: 'sun' },
   'moon': { type: 'feather', name: 'moon' },
+  'log-out': { type: 'feather', name: 'log-out' },
 } as const;
 
 type IconSymbolName = keyof typeof MAPPING;
