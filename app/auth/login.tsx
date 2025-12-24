@@ -1,6 +1,7 @@
 import { LoginTexts } from '@/components/texts/login-texts';
 import React, { useState } from 'react';
 import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import appConfig from '../../app.json';
 
 
 interface LoginProps {
@@ -16,28 +17,54 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   // JWT token örneği, gerçek uygulamada bunu güvenli şekilde alın
   const jwtToken = 'YOUR_JWT_TOKEN_HERE';
 
+  // Store token in memory for demo; use secure storage in production
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+
+  // Get API base URL from app.json (expo config)
+  const API_BASE_URL = appConfig?.expo?.apiBaseUrl || 'http://localhost:5249/api';
+
+  // Helper to get token for future requests
+  const getAuthHeaders = () => {
+    // Try to get from state, fallback to localStorage
+    const token = accessToken || (typeof window !== 'undefined' && window.localStorage ? window.localStorage.getItem('accessToken') : null);
+    if (token) {
+      return {
+        'Authorization': `Bearer ${token}`,
+      };
+    }
+    return {};
+  };
+
   const handleLoginPress = async () => {
     try {
-      const response = await fetch('http://localhost:5249/api/Auth/login', {
+      // If username or password is empty, send null as in the curl example
+      const body = {
+        email: username || null,
+        password: password || null,
+      };
+      const response = await fetch(`${API_BASE_URL}/Auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // 'Authorization': `Bearer ${jwtToken}`,
         },
-        body: JSON.stringify({ email: username, password }),
+        body: JSON.stringify(body),
       });
-      if (response.ok) {
+      if (response.status === 200) {
         const data = await response.json();
+        if (data?.data?.accessToken) {
+          setAccessToken(data.data.accessToken);
+          // Store in localStorage for persistence
+          if (typeof window !== 'undefined' && window.localStorage) {
+            window.localStorage.setItem('accessToken', data.data.accessToken);
+          }
+        }
         console.log('Login successful: ', data);
-        // Başarılı giriş işlemi
         onLogin(userType, username, password);
       } else {
         console.log('Login failed');
-        // Başarısız giriş işlemi
       }
     } catch (e) {
       console.log('Error during login: ', e);
-      // Sunucu hatası işlemi
     }
   };
 

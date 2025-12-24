@@ -8,6 +8,7 @@
     "scheme": "aeuobsfrontend",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "apiBaseUrl": "http://localhost:5249/api",
     "ios": {
       "supportsTablet": true
     },

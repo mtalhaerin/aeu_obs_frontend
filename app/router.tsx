@@ -42,3 +42,10 @@ const Router: React.FC<RouterProps> = ({ hasAuthorizationToken }) => {
 };
 
 export default Router;
+
+// routes.ts
+export const ROUTES = {
+  LOGIN: '/auth/login',
+  LOGOUT: '/auth/logout',
+  // diğer route'lar...
+};
