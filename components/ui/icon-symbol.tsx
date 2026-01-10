@@ -13,6 +13,8 @@ const MAPPING = {
   'paperplane.fill': { type: 'material', name: 'send' },
   'chevron.left.forwardslash.chevron.right': { type: 'material', name: 'code' },
   'chevron.right': { type: 'material', name: 'chevron-right' },
+  'chevron.down': { type: 'material', name: 'keyboard-arrow-down' },
+  'chevron.up': { type: 'material', name: 'keyboard-arrow-up' },
   'sun': { type: 'feather', name: 'sun' },
   'moon': { type: 'feather', name: 'moon' },
   'log-out': { type: 'feather', name: 'log-out' },

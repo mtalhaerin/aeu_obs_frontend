@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 // ImageSourcePropType'ı import ediyoruz
 import { Image, ImageSourcePropType, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ROUTES } from '../app/router';
+import { getCookie } from '../utils/cookies';
+import { getIdentityInfoFromToken } from '../utils/jwt';
 import { IconSymbol } from './ui/icon-symbol';
 
 // 1. ÖNEMLİ: Dosyayı require ile alıyoruz.
@@ -23,6 +25,9 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ userName = 'Kullanıcı',
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [logoLoadFailed, setLogoLoadFailed] = useState(false);
+  const [displayName, setDisplayName] = useState<string>(userName);
+  const [avatarInitial, setAvatarInitial] = useState<string>(userName.charAt(0).toUpperCase());
+  const [hoveredDropdownItem, setHoveredDropdownItem] = useState<string | null>(null);
 
   // 2. Asset kaynağını Web için string URL'e çeviren yardımcı fonksiyon
   const getImgSrc = (source: string | ImageSourcePropType): string => {
@@ -49,6 +54,28 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ userName = 'Kullanıcı',
     router.push(ROUTES.LOGOUT);
   };
 
+    const handleLogoClick = () => {
+      router.push(ROUTES.DASHBOARD);
+    };
+
+  // Cookie'den JWT'yi alıp görüntülenecek adı ayarla: "identity_number - name"
+  React.useEffect(() => {
+    const token = getCookie('accessToken');
+    if (token) {
+      const info = getIdentityInfoFromToken(token);
+      const nameFromToken = info?.name?.trim();
+      const idNumberFromToken = info?.identity_number?.trim();
+
+      if (nameFromToken || idNumberFromToken) {
+        const composed = idNumberFromToken && nameFromToken
+          ? `${idNumberFromToken} - ${nameFromToken}`
+          : nameFromToken || displayName;
+        setDisplayName(composed);
+        setAvatarInitial((nameFromToken || userName).charAt(0).toUpperCase());
+      }
+    }
+  }, [userName]);
+
   // Web etiketi için çözümlenmiş kaynak URL'i
   const resolvedSrc = getImgSrc(logoSrc);
   
@@ -57,7 +84,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ userName = 'Kullanıcı',
 
   return (
     <View style={styles.container}>
-      <View style={styles.leftSection}>
+        <Pressable style={styles.leftSection} onPress={handleLogoClick}>
         {!logoLoadFailed && logoSrc ? (
           Platform.OS === 'web' && isSvg ? (
             // 3. Web tarafında SVG için native <img> etiketi
@@ -82,28 +109,89 @@ const NavigationBar: React.FC<NavigationBarProps> = ({ userName = 'Kullanıcı',
             />
           )
         ) : (
-          <Text style={styles.logo}>AEU OBS</Text>
+          <Text style={[styles.logo, styles.notSelectable]} selectable={false}>AEU OBS</Text>
         )}
-      </View>
+        </Pressable>
       
       {/* Sağ Kısım (Değişmedi) */}
       <View style={styles.rightSection}>
         <View style={styles.profileContainer}>
           <Pressable style={styles.profileButton} onPress={handleProfileClick}>
-            <Text style={styles.profileName}>{userName}</Text>
-            <Text style={styles.dropdownArrow}>{isDropdownOpen ? '▲' : '▼'}</Text>
+            <Text style={[styles.profileName, styles.notSelectable]} selectable={false}>{displayName}</Text>
+            <View style={styles.dropdownIcon}>
+              <IconSymbol
+                name={isDropdownOpen ? 'chevron.up' : 'chevron.down'}
+                size={14}
+                color="#666"
+              />
+            </View>
             <View style={styles.profileImage}>
-              <Text style={styles.profileImageText}>{userName.charAt(0).toUpperCase()}</Text>
+              <Text style={[styles.profileImageText, styles.notSelectable]} selectable={false}>{avatarInitial}</Text>
             </View>
           </Pressable>
 
           {isDropdownOpen && (
             <View style={styles.dropdown}>
-              <Pressable style={styles.dropdownItem} onPress={handleProfileNavigate}>
-                <Text style={styles.dropdownText}>Profil</Text>
+              <Pressable
+                style={[
+                  styles.dropdownItem,
+                  hoveredDropdownItem === 'profile' && styles.dropdownItemHovered,
+                ]}
+                onPress={handleProfileNavigate}
+                {...(Platform.OS === 'web' && {
+                  onMouseEnter: () => setHoveredDropdownItem('profile'),
+                  onMouseLeave: () => setHoveredDropdownItem(null),
+                } as any)}
+              >
+                <Text style={[styles.dropdownText, styles.notSelectable]} selectable={false}>Profil</Text>
+              </Pressable>
+              
+              <Pressable
+                style={[
+                  styles.dropdownItem,
+                  hoveredDropdownItem === 'settings' && styles.dropdownItemHovered,
+                ]}
+                onPress={() => setIsDropdownOpen(false)}
+                {...(Platform.OS === 'web' && {
+                  onMouseEnter: () => setHoveredDropdownItem('settings'),
+                  onMouseLeave: () => setHoveredDropdownItem(null),
+                } as any)}
+              >
+                <Text style={[styles.dropdownText, styles.notSelectable]} selectable={false}>Ayarlar</Text>
+              </Pressable>
+              
+              <Pressable
+                style={[
+                  styles.dropdownItem,
+                  hoveredDropdownItem === 'notifications' && styles.dropdownItemHovered,
+                ]}
+                onPress={() => setIsDropdownOpen(false)}
+                {...(Platform.OS === 'web' && {
+                  onMouseEnter: () => setHoveredDropdownItem('notifications'),
+                  onMouseLeave: () => setHoveredDropdownItem(null),
+                } as any)}
+              >
+                <Text style={[styles.dropdownText, styles.notSelectable]} selectable={false}>Bildirimleri Kapat</Text>
+              </Pressable>
+              
+              <View style={styles.dropdownDivider} />
+              
+              <Pressable
+                style={[
+                  styles.dropdownItem,
+                  hoveredDropdownItem === 'logout' && styles.dropdownItemHovered,
+                ]}
+                onPress={handleLogout}
+                {...(Platform.OS === 'web' && {
+                  onMouseEnter: () => setHoveredDropdownItem('logout'),
+                  onMouseLeave: () => setHoveredDropdownItem(null),
+                } as any)}
+              >
+                <Text style={[styles.dropdownText, styles.notSelectable, styles.logoutText]} selectable={false}>Çıkış</Text>
               </Pressable>
             </View>
           )}
+
         </View>
 
         <Pressable style={styles.logoutButton} onPress={handleLogout}>
@@ -135,6 +223,7 @@ const styles = StyleSheet.create({
   leftSection: {
     flex: 1,
     alignItems: 'flex-start',
+      cursor: Platform.OS === 'web' ? 'pointer' : undefined,
   },
   logo: {
     fontSize: 22,
@@ -183,9 +272,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#181818',
   },
-  dropdownArrow: {
-    fontSize: 10,
-    color: '#666',
+  dropdownIcon: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   dropdown: {
     position: 'absolute',
@@ -209,10 +298,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     cursor: Platform.OS === 'web' ? 'pointer' : undefined,
   },
+  dropdownItemHovered: {
+    backgroundColor: '#f0f0f0',
+  },
+  dropdownDivider: {
+    height: 1,
+    backgroundColor: '#e0e0e0',
+    marginVertical: 4,
+  },
   dropdownText: {
     fontSize: 14,
     color: '#181818',
     fontWeight: '500',
+  },
+  logoutText: {
+    color: '#d32f2f',
   },
   logoutButton: {
     padding: 8,
@@ -221,6 +321,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     cursor: Platform.OS === 'web' ? 'pointer' : undefined,
+  },
+  notSelectable: {
+    // Prevent text selection on web
+    userSelect: 'none',
   },
 });
 

@@ -8,8 +8,10 @@
     "scheme": "aeuobsfrontend",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "apiBaseUrl": "http://localhost:5249/api",
-    "cookieExpirationMinutes": 10,
+    "extra": {
+      "apiBaseUrl": "http://localhost:5249/api",
+      "cookieExpirationMinutes": 10
+    },
     "ios": {
       "supportsTablet": true
     },
