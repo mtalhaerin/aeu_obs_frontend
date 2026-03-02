@@ -1,7 +1,34 @@
-import Constants from 'expo-constants';
-import { getCookie } from '../utils/cookies';
+import Constants from "expo-constants";
+import { getCookie } from "../utils/cookies";
+import { decodeJWT } from "../utils/jwt";
 
-const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl || 'http://localhost:5249';
+const API_BASE_URL =
+  Constants.expoConfig?.extra?.apiBaseUrl || "http://localhost:5249";
+
+// Build full URL safely to avoid duplicate segments like `/api/api` or duplicate slashes.
+function buildUrl(endpoint: string): string {
+  // If endpoint is already an absolute URL, return it as-is
+  if (/^https?:\/\//i.test(endpoint)) return endpoint;
+
+  let base = API_BASE_URL || "";
+  // remove trailing slashes from base
+  base = base.replace(/\/+$/g, "");
+
+  let ep = endpoint || "";
+  // ensure endpoint starts with a single slash
+  ep = "/" + ep.replace(/^\/+/, "");
+
+  // if base already ends with '/api' and endpoint also starts with '/api', drop the duplicate '/api' from endpoint
+  if (
+    base.toLowerCase().endsWith("/api") &&
+    ep.toLowerCase().startsWith("/api")
+  ) {
+    ep = ep.replace(/^\/api/i, "");
+    if (!ep.startsWith("/")) ep = "/" + ep;
+  }
+
+  return base + ep;
+}
 
 // Response wrapper interface
 interface ApiResponse<T> {
@@ -13,33 +40,49 @@ interface ApiResponse<T> {
 
 // Helper function to get auth token from cookie
 function getAuthToken(): string | null {
-  return getCookie('accessToken');
+  return getCookie("accessToken");
 }
 
 // Helper function for API calls
 async function apiCall<T>(
   endpoint: string,
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
-  body?: any
+  method: "GET" | "POST" | "PUT" | "DELETE",
+  body?: any,
 ): Promise<T> {
   const token = getAuthToken();
   if (!token) {
-    throw new Error('Yetkilendirme başarısız. Lütfen tekrar giriş yapınız.');
+    throw new Error("Yetkilendirme başarısız. Lütfen tekrar giriş yapınız.");
   }
+  // Try to extract user uuid (sub) from token and inject into body when appropriate
+  const payload = decodeJWT(token);
+  const userUuid = payload?.sub;
 
   const options: RequestInit = {
     method,
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
   };
 
-  if (body && (method === 'POST' || method === 'PUT')) {
+  // For POST/PUT/DELETE operations that include a JSON body, ensure `kullaniciUuid` is present
+  if (body && (method === "POST" || method === "PUT" || method === "DELETE")) {
+    try {
+      if (
+        userUuid &&
+        typeof body === "object" &&
+        !Array.isArray(body) &&
+        !body.kullaniciUuid
+      ) {
+        body.kullaniciUuid = userUuid;
+      }
+    } catch (e) {
+      // ignore errors while augmenting body
+    }
     options.body = JSON.stringify(body);
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+  const response = await fetch(buildUrl(endpoint), options);
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
@@ -47,9 +90,9 @@ async function apiCall<T>(
   }
 
   const responseData: ApiResponse<T> = await response.json();
-  
+
   if (!responseData.isSuccess) {
-    throw new Error(responseData.message || 'İşlem başarısız');
+    throw new Error(responseData.message || "İşlem başarısız");
   }
 
   return responseData.data;
@@ -67,6 +110,7 @@ export interface OzlukAdres {
 }
 
 export interface AddresAddRequest {
+  kullaniciUuid: string;
   sokak: string;
   sehir: string;
   ilce: string;
@@ -85,25 +129,25 @@ export interface AddresDeleteRequest {
 
 export const addressAPI = {
   async getAddresses(): Promise<OzlukAdres[]> {
-    const response = await apiCall<any>('/api/Ozluk/addreses', 'GET');
+    const response = await apiCall<any>("/api/Ozluk/addreses", "GET");
     // API döndürebilecek yapılar: { addreses: [...] } veya { addresses: [...] } vb (typo)
     return response?.addreses || response?.addresses || response?.adreses || [];
   },
 
   async getAddress(adresUuid: string): Promise<OzlukAdres> {
-    return apiCall(`/api/Ozluk/addres/${adresUuid}`, 'GET');
+    return apiCall(`/api/Ozluk/addres/${adresUuid}`, "GET");
   },
 
   async addAddress(data: AddresAddRequest): Promise<OzlukAdres> {
-    return apiCall('/api/Ozluk/addres', 'POST', data);
+    return apiCall("/api/Ozluk/addres", "POST", data);
   },
 
   async updateAddress(data: AddresUpdateRequest): Promise<OzlukAdres> {
-    return apiCall('/api/Ozluk/addres', 'PUT', data);
+    return apiCall("/api/Ozluk/addres", "PUT", data);
   },
 
   async deleteAddress(adresUuid: string): Promise<void> {
-    return apiCall('/api/Ozluk/addres', 'DELETE', { adresUuid });
+    return apiCall("/api/Ozluk/addres", "DELETE", { adresUuid });
   },
 };
 
@@ -117,7 +161,7 @@ export interface OzlukEmail {
 
 export interface EmailAddRequest {
   epostaAdresi: string;
-  epostaTipi: 'KURUMSAL' | 'KISISEL' | 'DIGER';
+  epostaTipi: "KURUMSAL" | "KISISEL" | "DIGER";
   oncelikli: boolean;
 }
 
@@ -131,25 +175,25 @@ export interface EmailDeleteRequest {
 
 export const emailAPI = {
   async getEmails(): Promise<OzlukEmail[]> {
-    const response = await apiCall<any>('/api/Ozluk/emails', 'GET');
+    const response = await apiCall<any>("/api/Ozluk/emails", "GET");
     // API döndürebilecek yapılar: { emails: [...] } veya { epostalar: [...] } vb
     return response?.emails || response?.epostalar || response?.mails || [];
   },
 
   async getEmail(epostaUuid: string): Promise<OzlukEmail> {
-    return apiCall(`/api/Ozluk/email/${epostaUuid}`, 'GET');
+    return apiCall(`/api/Ozluk/email/${epostaUuid}`, "GET");
   },
 
   async addEmail(data: EmailAddRequest): Promise<OzlukEmail> {
-    return apiCall('/api/Ozluk/email', 'POST', data);
+    return apiCall("/api/Ozluk/email", "POST", data);
   },
 
   async updateEmail(data: EmailUpdateRequest): Promise<OzlukEmail> {
-    return apiCall('/api/Ozluk/email', 'PUT', data);
+    return apiCall("/api/Ozluk/email", "PUT", data);
   },
 
   async deleteEmail(epostaUuid: string): Promise<void> {
-    return apiCall('/api/Ozluk/email', 'DELETE', { epostaUuid });
+    return apiCall("/api/Ozluk/email", "DELETE", { epostaUuid });
   },
 };
 
@@ -165,7 +209,7 @@ export interface OzlukTelefon {
 export interface PhoneAddRequest {
   ulkeKodu: string;
   telefonNo: string;
-  telefonTipi: 'CEP' | 'EV' | 'IS' | 'DIGER';
+  telefonTipi: "CEP" | "EV" | "IS" | "DIGER";
   oncelikli: boolean;
 }
 
@@ -179,24 +223,24 @@ export interface PhoneDeleteRequest {
 
 export const phoneAPI = {
   async getPhones(): Promise<OzlukTelefon[]> {
-    const response = await apiCall<any>('/api/Ozluk/phones', 'GET');
+    const response = await apiCall<any>("/api/Ozluk/phones", "GET");
     // API döndürebilecek yapılar: { phones: [...] } veya { telefonlar: [...] } vb
     return response?.phones || response?.telefonlar || response?.telefons || [];
   },
 
   async getPhone(telefonUuid: string): Promise<OzlukTelefon> {
-    return apiCall(`/api/Ozluk/phone/${telefonUuid}`, 'GET');
+    return apiCall(`/api/Ozluk/phone/${telefonUuid}`, "GET");
   },
 
   async addPhone(data: PhoneAddRequest): Promise<OzlukTelefon> {
-    return apiCall('/api/Ozluk/phone', 'POST', data);
+    return apiCall("/api/Ozluk/phone", "POST", data);
   },
 
   async updatePhone(data: PhoneUpdateRequest): Promise<OzlukTelefon> {
-    return apiCall('/api/Ozluk/phone', 'PUT', data);
+    return apiCall("/api/Ozluk/phone", "PUT", data);
   },
 
   async deletePhone(telefonUuid: string): Promise<void> {
-    return apiCall('/api/Ozluk/phone', 'DELETE', { telefonUuid });
+    return apiCall("/api/Ozluk/phone", "DELETE", { telefonUuid });
   },
 };

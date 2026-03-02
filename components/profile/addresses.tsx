@@ -1,6 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { AddresAddRequest, addressAPI, OzlukAdres } from '../../services/ozluk-api';
+import React, { useEffect, useState } from "react";
+import {
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import {
+  AddresAddRequest,
+  addressAPI,
+  OzlukAdres,
+} from "../../services/ozluk-api";
 
 interface AddressesProps {
   onRefresh?: () => void;
@@ -9,7 +21,9 @@ interface AddressesProps {
 const Addresses: React.FC<AddressesProps> = ({ onRefresh }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [addresses, setAddresses] = useState<OzlukAdres[]>([]);
-  const [selectedAddress, setSelectedAddress] = useState<OzlukAdres | null>(null);
+  const [selectedAddress, setSelectedAddress] = useState<OzlukAdres | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -17,11 +31,11 @@ const Addresses: React.FC<AddressesProps> = ({ onRefresh }) => {
 
   // Form state
   const [form, setForm] = useState<AddresAddRequest>({
-    sokak: '',
-    sehir: '',
-    ilce: '',
-    postaKodu: '',
-    ulke: '',
+    sokak: "",
+    sehir: "",
+    ilce: "",
+    postaKodu: "",
+    ulke: "",
     oncelikli: false,
   });
 
@@ -33,11 +47,15 @@ const Addresses: React.FC<AddressesProps> = ({ onRefresh }) => {
       const data = await addressAPI.getAddresses();
       setAddresses(data);
       if (selectedAddress && data.length > 0) {
-        const updated = data.find(a => a.adresUuid === selectedAddress.adresUuid);
+        const updated = data.find(
+          (a) => a.adresUuid === selectedAddress.adresUuid,
+        );
         if (updated) setSelectedAddress(updated);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Adresleri yükleme başarısız');
+      setError(
+        err instanceof Error ? err.message : "Adresleri yükleme başarısız",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -67,11 +85,11 @@ const Addresses: React.FC<AddressesProps> = ({ onRefresh }) => {
   const handleAddNew = () => {
     setSelectedAddress(null);
     setForm({
-      sokak: '',
-      sehir: '',
-      ilce: '',
-      postaKodu: '',
-      ulke: '',
+      sokak: "",
+      sehir: "",
+      ilce: "",
+      postaKodu: "",
+      ulke: "",
       oncelikli: false,
     });
     setIsAdding(true);
@@ -95,7 +113,7 @@ const Addresses: React.FC<AddressesProps> = ({ onRefresh }) => {
       setError(null);
       if (onRefresh) onRefresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'İşlem başarısız');
+      setError(err instanceof Error ? err.message : "İşlem başarısız");
     } finally {
       setIsLoading(false);
     }
@@ -104,7 +122,7 @@ const Addresses: React.FC<AddressesProps> = ({ onRefresh }) => {
   // Handle delete
   const handleDelete = async () => {
     if (!selectedAddress) return;
-    if (!confirm('Bu adresi silmek istediğinize emin misiniz?')) return;
+    if (!confirm("Bu adresi silmek istediğinize emin misiniz?")) return;
 
     try {
       setIsLoading(true);
@@ -115,7 +133,7 @@ const Addresses: React.FC<AddressesProps> = ({ onRefresh }) => {
       setError(null);
       if (onRefresh) onRefresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Silme işlemi başarısız');
+      setError(err instanceof Error ? err.message : "Silme işlemi başarısız");
     } finally {
       setIsLoading(false);
     }
@@ -141,18 +159,20 @@ const Addresses: React.FC<AddressesProps> = ({ onRefresh }) => {
                     key={addr.adresUuid}
                     style={[
                       styles.dropdownItem,
-                      selectedAddress?.adresUuid === addr.adresUuid && styles.selectedItem,
+                      selectedAddress?.adresUuid === addr.adresUuid &&
+                        styles.selectedItem,
                       hoveredItem === addr.adresUuid && styles.hoveredItem,
                     ]}
                     onPress={() => handleSelectAddress(addr)}
-                    {...(Platform.OS === 'web' && {
-                      onMouseEnter: () => setHoveredItem(addr.adresUuid),
-                      onMouseLeave: () => setHoveredItem(null),
-                    } as any)}
+                    {...(Platform.OS === "web" &&
+                      ({
+                        onMouseEnter: () => setHoveredItem(addr.adresUuid),
+                        onMouseLeave: () => setHoveredItem(null),
+                      } as any))}
                   >
                     <Text style={styles.dropdownItemText}>
                       {addr.sokak}, {addr.sehir}
-                      {addr.oncelikli && ' ⭐'}
+                      {addr.oncelikli && " ⭐"}
                     </Text>
                   </Pressable>
                 ))}
@@ -166,7 +186,7 @@ const Addresses: React.FC<AddressesProps> = ({ onRefresh }) => {
           {(isAdding || selectedAddress) && (
             <View style={styles.formContainer}>
               <Text style={styles.formTitle}>
-                {isAdding ? 'Yeni Adres Ekle' : 'Adresi Düzenle'}
+                {isAdding ? "Yeni Adres Ekle" : "Adresi Düzenle"}
               </Text>
 
               <TextInput
@@ -206,7 +226,10 @@ const Addresses: React.FC<AddressesProps> = ({ onRefresh }) => {
               />
 
               <Pressable
-                style={[styles.checkbox, form.oncelikli && styles.checkboxChecked]}
+                style={[
+                  styles.checkbox,
+                  form.oncelikli && styles.checkboxChecked,
+                ]}
                 onPress={() => setForm({ ...form, oncelikli: !form.oncelikli })}
               >
                 <Text style={styles.checkboxLabel}>Öncelikli Adres</Text>
@@ -215,7 +238,11 @@ const Addresses: React.FC<AddressesProps> = ({ onRefresh }) => {
               {/* Buttons */}
               <View style={styles.buttonContainer}>
                 <Pressable
-                  style={[styles.button, styles.saveButton, isLoading && styles.buttonDisabled]}
+                  style={[
+                    styles.button,
+                    styles.saveButton,
+                    isLoading && styles.buttonDisabled,
+                  ]}
                   onPress={handleSave}
                   disabled={isLoading}
                 >
@@ -224,7 +251,11 @@ const Addresses: React.FC<AddressesProps> = ({ onRefresh }) => {
 
                 {selectedAddress && (
                   <Pressable
-                    style={[styles.button, styles.deleteButton, isLoading && styles.buttonDisabled]}
+                    style={[
+                      styles.button,
+                      styles.deleteButton,
+                      isLoading && styles.buttonDisabled,
+                    ]}
                     onPress={handleDelete}
                     disabled={isLoading}
                   >
@@ -266,25 +297,25 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 20,
     borderRadius: 8,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: "#f9f9f9",
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    overflow: 'hidden',
+    borderColor: "#e0e0e0",
+    overflow: "hidden",
   },
   sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    cursor: Platform.OS === 'web' ? 'pointer' : undefined,
+    borderBottomColor: "#e0e0e0",
+    cursor: Platform.OS === "web" ? "pointer" : undefined,
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#181818',
+    fontWeight: "600",
+    color: "#181818",
   },
   sectionContent: {
     padding: 16,
@@ -294,78 +325,78 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#333',
+    fontWeight: "500",
+    color: "#333",
     marginBottom: 8,
   },
   dropdown: {
     maxHeight: 150,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: "#e0e0e0",
     borderRadius: 6,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   dropdownItem: {
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-    cursor: Platform.OS === 'web' ? 'pointer' : undefined,
+    borderBottomColor: "#f0f0f0",
+    cursor: Platform.OS === "web" ? "pointer" : undefined,
   },
   dropdownItemText: {
     fontSize: 13,
-    color: '#333',
+    color: "#333",
   },
   selectedItem: {
-    backgroundColor: '#e8f4f8',
+    backgroundColor: "#e8f4f8",
   },
   hoveredItem: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   formContainer: {
     marginTop: 16,
     padding: 12,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: "#e0e0e0",
   },
   formTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 12,
-    color: '#181818',
+    color: "#181818",
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 6,
     padding: 10,
     marginBottom: 10,
     fontSize: 14,
-    backgroundColor: '#fff',
-    color: '#333',
+    backgroundColor: "#fff",
+    color: "#333",
   },
   checkbox: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 10,
     marginBottom: 12,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#f5f5f5',
+    borderColor: "#ddd",
+    backgroundColor: "#f5f5f5",
   },
   checkboxChecked: {
-    backgroundColor: '#e8f4f8',
-    borderColor: '#0288d1',
+    backgroundColor: "#e8f4f8",
+    borderColor: "#0288d1",
   },
   checkboxLabel: {
     fontSize: 14,
-    color: '#333',
+    color: "#333",
     marginLeft: 8,
   },
   buttonContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
   },
   button: {
@@ -373,22 +404,22 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 6,
-    alignItems: 'center',
-    cursor: Platform.OS === 'web' ? 'pointer' : undefined,
+    alignItems: "center",
+    cursor: Platform.OS === "web" ? "pointer" : undefined,
   },
   saveButton: {
-    backgroundColor: '#4caf50',
+    backgroundColor: "#4caf50",
   },
   deleteButton: {
-    backgroundColor: '#f44336',
+    backgroundColor: "#f44336",
   },
   cancelButton: {
-    backgroundColor: '#999',
+    backgroundColor: "#999",
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -397,26 +428,26 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#4caf50',
-    borderStyle: 'dashed',
-    alignItems: 'center',
-    backgroundColor: '#f1f8f4',
-    cursor: Platform.OS === 'web' ? 'pointer' : undefined,
+    borderColor: "#4caf50",
+    borderStyle: "dashed",
+    alignItems: "center",
+    backgroundColor: "#f1f8f4",
+    cursor: Platform.OS === "web" ? "pointer" : undefined,
   },
   addButtonText: {
-    color: '#4caf50',
+    color: "#4caf50",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   emptyText: {
     fontSize: 13,
-    color: '#999',
-    fontStyle: 'italic',
+    color: "#999",
+    fontStyle: "italic",
     marginBottom: 12,
   },
   errorText: {
-    backgroundColor: '#ffebee',
-    color: '#c62828',
+    backgroundColor: "#ffebee",
+    color: "#c62828",
     padding: 10,
     borderRadius: 6,
     marginBottom: 12,
