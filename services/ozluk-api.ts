@@ -53,9 +53,29 @@ async function apiCall<T>(
   if (!token) {
     throw new Error("Yetkilendirme başarısız. Lütfen tekrar giriş yapınız.");
   }
-  // Try to extract user uuid (sub) from token and inject into body when appropriate
+  // Extract userUuid from the token
   const payload = decodeJWT(token);
   const userUuid = payload?.sub;
+
+  // Build the full URL first for all request types
+  endpoint = buildUrl(endpoint);
+
+  if (method === "GET" && userUuid) {
+    // Append userUuid to the query parameters for GET requests
+    const url = new URL(endpoint);
+    url.searchParams.append("kullaniciUuid", userUuid);
+    endpoint = url.toString();
+  } else if (
+    userUuid &&
+    (method === "POST" || method === "PUT" || method === "DELETE")
+  ) {
+    // Include userUuid in the body for non-GET requests
+    if (typeof body === "object" && !Array.isArray(body)) {
+      body.kullaniciUuid = userUuid;
+    } else {
+      body = { kullaniciUuid: userUuid };
+    }
+  }
 
   const options: RequestInit = {
     method,
@@ -65,24 +85,11 @@ async function apiCall<T>(
     },
   };
 
-  // For POST/PUT/DELETE operations that include a JSON body, ensure `kullaniciUuid` is present
-  if (body && (method === "POST" || method === "PUT" || method === "DELETE")) {
-    try {
-      if (
-        userUuid &&
-        typeof body === "object" &&
-        !Array.isArray(body) &&
-        !body.kullaniciUuid
-      ) {
-        body.kullaniciUuid = userUuid;
-      }
-    } catch (e) {
-      // ignore errors while augmenting body
-    }
+  if (body && method !== "GET") {
     options.body = JSON.stringify(body);
   }
 
-  const response = await fetch(buildUrl(endpoint), options);
+  const response = await fetch(endpoint, options);
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
@@ -152,6 +159,14 @@ export const addressAPI = {
 };
 
 // EMAIL API
+// Enum values from backend
+export enum EpostaTipi {
+  KISISEL = 0,
+  IS = 1,
+  DIGER = 2,
+  Personel = 3,
+}
+
 export interface OzlukEmail {
   epostaUuid: string;
   epostaAdresi: string;
@@ -161,7 +176,7 @@ export interface OzlukEmail {
 
 export interface EmailAddRequest {
   epostaAdresi: string;
-  epostaTipi: "KURUMSAL" | "KISISEL" | "DIGER";
+  epostaTipi: EpostaTipi;
   oncelikli: boolean;
 }
 
@@ -198,6 +213,13 @@ export const emailAPI = {
 };
 
 // PHONE API
+// Enum values from backend
+export enum TelefonTipi {
+  CEP = 0,
+  EV = 1,
+  IS = 2,
+}
+
 export interface OzlukTelefon {
   telefonUuid: string;
   ulkeKodu: string;
@@ -209,7 +231,7 @@ export interface OzlukTelefon {
 export interface PhoneAddRequest {
   ulkeKodu: string;
   telefonNo: string;
-  telefonTipi: "CEP" | "EV" | "IS" | "DIGER";
+  telefonTipi: TelefonTipi;
   oncelikli: boolean;
 }
 

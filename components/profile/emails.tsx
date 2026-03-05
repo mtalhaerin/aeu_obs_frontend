@@ -1,6 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { EmailAddRequest, emailAPI, OzlukEmail } from '../../services/ozluk-api';
+import React, { useEffect, useState } from "react";
+import {
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
+} from "react-native";
+import {
+    EmailAddRequest,
+    emailAPI,
+    EpostaTipi,
+    OzlukEmail,
+} from "../../services/ozluk-api";
 
 interface EmailsProps {
   onRefresh?: () => void;
@@ -15,12 +28,24 @@ const Emails: React.FC<EmailsProps> = ({ onRefresh }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
-  const emailTypes = ['KURUMSAL', 'KISISEL', 'DIGER'];
+  const emailTypeOptions = [
+    { label: "KIŞISEL", value: EpostaTipi.KISISEL },
+    { label: "İŞ", value: EpostaTipi.IS },
+    { label: "DİĞER", value: EpostaTipi.DIGER },
+    { label: "PERSONEL", value: EpostaTipi.Personel },
+  ];
+
+  // Helper function to get email type label
+  const getEmailTypeLabel = (type: string | number): string => {
+    const typeNum = typeof type === "string" ? parseInt(type) : type;
+    const option = emailTypeOptions.find((opt) => opt.value === typeNum);
+    return option ? option.label : "BİLİNMEYEN";
+  };
 
   // Form state
   const [form, setForm] = useState<EmailAddRequest>({
-    epostaAdresi: '',
-    epostaTipi: 'KISISEL',
+    epostaAdresi: "",
+    epostaTipi: EpostaTipi.KISISEL,
     oncelikli: false,
   });
 
@@ -32,11 +57,15 @@ const Emails: React.FC<EmailsProps> = ({ onRefresh }) => {
       const data = await emailAPI.getEmails();
       setEmails(data);
       if (selectedEmail && data.length > 0) {
-        const updated = data.find(e => e.epostaUuid === selectedEmail.epostaUuid);
+        const updated = data.find(
+          (e) => e.epostaUuid === selectedEmail.epostaUuid,
+        );
         if (updated) setSelectedEmail(updated);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'E-postaları yükleme başarısız');
+      setError(
+        err instanceof Error ? err.message : "E-postaları yükleme başarısız",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -51,9 +80,13 @@ const Emails: React.FC<EmailsProps> = ({ onRefresh }) => {
   // Handle email selection
   const handleSelectEmail = (email: OzlukEmail) => {
     setSelectedEmail(email);
+    const emailType =
+      typeof email.epostaTipi === "string"
+        ? parseInt(email.epostaTipi)
+        : email.epostaTipi;
     setForm({
       epostaAdresi: email.epostaAdresi,
-      epostaTipi: email.epostaTipi as any,
+      epostaTipi: emailType as EpostaTipi,
       oncelikli: email.oncelikli,
     });
     setIsAdding(false);
@@ -63,8 +96,8 @@ const Emails: React.FC<EmailsProps> = ({ onRefresh }) => {
   const handleAddNew = () => {
     setSelectedEmail(null);
     setForm({
-      epostaAdresi: '',
-      epostaTipi: 'KISISEL',
+      epostaAdresi: "",
+      epostaTipi: EpostaTipi.KISISEL,
       oncelikli: false,
     });
     setIsAdding(true);
@@ -88,7 +121,7 @@ const Emails: React.FC<EmailsProps> = ({ onRefresh }) => {
       setError(null);
       if (onRefresh) onRefresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'İşlem başarısız');
+      setError(err instanceof Error ? err.message : "İşlem başarısız");
     } finally {
       setIsLoading(false);
     }
@@ -97,7 +130,8 @@ const Emails: React.FC<EmailsProps> = ({ onRefresh }) => {
   // Handle delete
   const handleDelete = async () => {
     if (!selectedEmail) return;
-    if (!confirm('Bu e-posta adresini silmek istediğinize emin misiniz?')) return;
+    if (!confirm("Bu e-posta adresini silmek istediğinize emin misiniz?"))
+      return;
 
     try {
       setIsLoading(true);
@@ -108,7 +142,7 @@ const Emails: React.FC<EmailsProps> = ({ onRefresh }) => {
       setError(null);
       if (onRefresh) onRefresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Silme işlemi başarısız');
+      setError(err instanceof Error ? err.message : "Silme işlemi başarısız");
     } finally {
       setIsLoading(false);
     }
@@ -134,18 +168,21 @@ const Emails: React.FC<EmailsProps> = ({ onRefresh }) => {
                     key={email.epostaUuid}
                     style={[
                       styles.dropdownItem,
-                      selectedEmail?.epostaUuid === email.epostaUuid && styles.selectedItem,
+                      selectedEmail?.epostaUuid === email.epostaUuid &&
+                        styles.selectedItem,
                       hoveredItem === email.epostaUuid && styles.hoveredItem,
                     ]}
                     onPress={() => handleSelectEmail(email)}
-                    {...(Platform.OS === 'web' && {
-                      onMouseEnter: () => setHoveredItem(email.epostaUuid),
-                      onMouseLeave: () => setHoveredItem(null),
-                    } as any)}
+                    {...(Platform.OS === "web" &&
+                      ({
+                        onMouseEnter: () => setHoveredItem(email.epostaUuid),
+                        onMouseLeave: () => setHoveredItem(null),
+                      } as any))}
                   >
                     <Text style={styles.dropdownItemText}>
-                      {email.epostaAdresi} ({email.epostaTipi})
-                      {email.oncelikli && ' ⭐'}
+                      {email.epostaAdresi} (
+                      {getEmailTypeLabel(email.epostaTipi)})
+                      {email.oncelikli && " ⭐"}
                     </Text>
                   </Pressable>
                 ))}
@@ -159,14 +196,16 @@ const Emails: React.FC<EmailsProps> = ({ onRefresh }) => {
           {(isAdding || selectedEmail) && (
             <View style={styles.formContainer}>
               <Text style={styles.formTitle}>
-                {isAdding ? 'Yeni E-Posta Ekle' : 'E-Postayı Düzenle'}
+                {isAdding ? "Yeni E-Posta Ekle" : "E-Postayı Düzenle"}
               </Text>
 
               <TextInput
                 style={styles.input}
                 placeholder="E-Posta Adresi"
                 value={form.epostaAdresi}
-                onChangeText={(text) => setForm({ ...form, epostaAdresi: text })}
+                onChangeText={(text) =>
+                  setForm({ ...form, epostaAdresi: text })
+                }
                 editable={!isLoading}
                 keyboardType="email-address"
               />
@@ -174,23 +213,27 @@ const Emails: React.FC<EmailsProps> = ({ onRefresh }) => {
               <View style={styles.pickerContainer}>
                 <Text style={styles.label}>E-Posta Tipi:</Text>
                 <View style={styles.typeButtons}>
-                  {emailTypes.map((type) => (
+                  {emailTypeOptions.map((option) => (
                     <Pressable
-                      key={type}
+                      key={option.value}
                       style={[
                         styles.typeButton,
-                        form.epostaTipi === type && styles.typeButtonActive,
+                        form.epostaTipi === option.value &&
+                          styles.typeButtonActive,
                       ]}
-                      onPress={() => setForm({ ...form, epostaTipi: type as any })}
+                      onPress={() =>
+                        setForm({ ...form, epostaTipi: option.value })
+                      }
                       disabled={isLoading}
                     >
                       <Text
                         style={[
                           styles.typeButtonText,
-                          form.epostaTipi === type && styles.typeButtonTextActive,
+                          form.epostaTipi === option.value &&
+                            styles.typeButtonTextActive,
                         ]}
                       >
-                        {type}
+                        {option.label}
                       </Text>
                     </Pressable>
                   ))}
@@ -198,7 +241,10 @@ const Emails: React.FC<EmailsProps> = ({ onRefresh }) => {
               </View>
 
               <Pressable
-                style={[styles.checkbox, form.oncelikli && styles.checkboxChecked]}
+                style={[
+                  styles.checkbox,
+                  form.oncelikli && styles.checkboxChecked,
+                ]}
                 onPress={() => setForm({ ...form, oncelikli: !form.oncelikli })}
               >
                 <Text style={styles.checkboxLabel}>Öncelikli E-Posta</Text>
@@ -207,7 +253,11 @@ const Emails: React.FC<EmailsProps> = ({ onRefresh }) => {
               {/* Buttons */}
               <View style={styles.buttonContainer}>
                 <Pressable
-                  style={[styles.button, styles.saveButton, isLoading && styles.buttonDisabled]}
+                  style={[
+                    styles.button,
+                    styles.saveButton,
+                    isLoading && styles.buttonDisabled,
+                  ]}
                   onPress={handleSave}
                   disabled={isLoading}
                 >
@@ -216,7 +266,11 @@ const Emails: React.FC<EmailsProps> = ({ onRefresh }) => {
 
                 {selectedEmail && (
                   <Pressable
-                    style={[styles.button, styles.deleteButton, isLoading && styles.buttonDisabled]}
+                    style={[
+                      styles.button,
+                      styles.deleteButton,
+                      isLoading && styles.buttonDisabled,
+                    ]}
                     onPress={handleDelete}
                     disabled={isLoading}
                   >
@@ -258,25 +312,25 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 20,
     borderRadius: 8,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: "#f9f9f9",
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    overflow: 'hidden',
+    borderColor: "#e0e0e0",
+    overflow: "hidden",
   },
   sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    cursor: Platform.OS === 'web' ? 'pointer' : undefined,
+    borderBottomColor: "#e0e0e0",
+    cursor: Platform.OS === "web" ? "pointer" : undefined,
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#181818',
+    fontWeight: "600",
+    color: "#181818",
   },
   sectionContent: {
     padding: 16,
@@ -286,107 +340,107 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#333',
+    fontWeight: "500",
+    color: "#333",
     marginBottom: 8,
   },
   dropdown: {
     maxHeight: 150,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: "#e0e0e0",
     borderRadius: 6,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   dropdownItem: {
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-    cursor: Platform.OS === 'web' ? 'pointer' : undefined,
+    borderBottomColor: "#f0f0f0",
+    cursor: Platform.OS === "web" ? "pointer" : undefined,
   },
   dropdownItemText: {
     fontSize: 13,
-    color: '#333',
+    color: "#333",
   },
   selectedItem: {
-    backgroundColor: '#e8f4f8',
+    backgroundColor: "#e8f4f8",
   },
   hoveredItem: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   formContainer: {
     marginTop: 16,
     padding: 12,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: "#e0e0e0",
   },
   formTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 12,
-    color: '#181818',
+    color: "#181818",
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 6,
     padding: 10,
     marginBottom: 10,
     fontSize: 14,
-    backgroundColor: '#fff',
-    color: '#333',
+    backgroundColor: "#fff",
+    color: "#333",
   },
   pickerContainer: {
     marginBottom: 12,
   },
   typeButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
   },
   typeButton: {
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#f5f5f5',
-    cursor: Platform.OS === 'web' ? 'pointer' : undefined,
+    borderColor: "#ddd",
+    backgroundColor: "#f5f5f5",
+    cursor: Platform.OS === "web" ? "pointer" : undefined,
   },
   typeButtonActive: {
-    backgroundColor: '#0288d1',
-    borderColor: '#0288d1',
+    backgroundColor: "#0288d1",
+    borderColor: "#0288d1",
   },
   typeButtonText: {
     fontSize: 12,
-    color: '#333',
-    fontWeight: '500',
+    color: "#333",
+    fontWeight: "500",
   },
   typeButtonTextActive: {
-    color: '#fff',
+    color: "#fff",
   },
   checkbox: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 10,
     marginBottom: 12,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#f5f5f5',
+    borderColor: "#ddd",
+    backgroundColor: "#f5f5f5",
   },
   checkboxChecked: {
-    backgroundColor: '#e8f4f8',
-    borderColor: '#0288d1',
+    backgroundColor: "#e8f4f8",
+    borderColor: "#0288d1",
   },
   checkboxLabel: {
     fontSize: 14,
-    color: '#333',
+    color: "#333",
     marginLeft: 8,
   },
   buttonContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
   },
   button: {
@@ -394,22 +448,22 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 6,
-    alignItems: 'center',
-    cursor: Platform.OS === 'web' ? 'pointer' : undefined,
+    alignItems: "center",
+    cursor: Platform.OS === "web" ? "pointer" : undefined,
   },
   saveButton: {
-    backgroundColor: '#4caf50',
+    backgroundColor: "#4caf50",
   },
   deleteButton: {
-    backgroundColor: '#f44336',
+    backgroundColor: "#f44336",
   },
   cancelButton: {
-    backgroundColor: '#999',
+    backgroundColor: "#999",
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -418,26 +472,26 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#2196f3',
-    borderStyle: 'dashed',
-    alignItems: 'center',
-    backgroundColor: '#f0f7ff',
-    cursor: Platform.OS === 'web' ? 'pointer' : undefined,
+    borderColor: "#2196f3",
+    borderStyle: "dashed",
+    alignItems: "center",
+    backgroundColor: "#f0f7ff",
+    cursor: Platform.OS === "web" ? "pointer" : undefined,
   },
   addButtonText: {
-    color: '#2196f3',
+    color: "#2196f3",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   emptyText: {
     fontSize: 13,
-    color: '#999',
-    fontStyle: 'italic',
+    color: "#999",
+    fontStyle: "italic",
     marginBottom: 12,
   },
   errorText: {
-    backgroundColor: '#ffebee',
-    color: '#c62828',
+    backgroundColor: "#ffebee",
+    color: "#c62828",
     padding: 10,
     borderRadius: 6,
     marginBottom: 12,

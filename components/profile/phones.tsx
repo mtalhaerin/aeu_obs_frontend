@@ -1,6 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { OzlukTelefon, PhoneAddRequest, phoneAPI } from '../../services/ozluk-api';
+import React, { useEffect, useState } from "react";
+import {
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
+} from "react-native";
+import {
+    OzlukTelefon,
+    PhoneAddRequest,
+    phoneAPI,
+    TelefonTipi,
+} from "../../services/ozluk-api";
 
 interface PhonesProps {
   onRefresh?: () => void;
@@ -15,13 +28,24 @@ const Phones: React.FC<PhonesProps> = ({ onRefresh }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
-  const phoneTypes = ['CEP', 'EV', 'IS', 'DIGER'];
+  const phoneTypeOptions = [
+    { label: "CEP", value: TelefonTipi.CEP },
+    { label: "EV", value: TelefonTipi.EV },
+    { label: "İŞ", value: TelefonTipi.IS },
+  ];
+
+  // Helper function to get phone type label
+  const getPhoneTypeLabel = (type: string | number): string => {
+    const typeNum = typeof type === "string" ? parseInt(type) : type;
+    const option = phoneTypeOptions.find((opt) => opt.value === typeNum);
+    return option ? option.label : "BİLİNMEYEN";
+  };
 
   // Form state
   const [form, setForm] = useState<PhoneAddRequest>({
-    ulkeKodu: '',
-    telefonNo: '',
-    telefonTipi: 'CEP',
+    ulkeKodu: "",
+    telefonNo: "",
+    telefonTipi: TelefonTipi.CEP,
     oncelikli: false,
   });
 
@@ -33,11 +57,15 @@ const Phones: React.FC<PhonesProps> = ({ onRefresh }) => {
       const data = await phoneAPI.getPhones();
       setPhones(data);
       if (selectedPhone && data.length > 0) {
-        const updated = data.find(p => p.telefonUuid === selectedPhone.telefonUuid);
+        const updated = data.find(
+          (p) => p.telefonUuid === selectedPhone.telefonUuid,
+        );
         if (updated) setSelectedPhone(updated);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Telefonları yükleme başarısız');
+      setError(
+        err instanceof Error ? err.message : "Telefonları yükleme başarısız",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -52,10 +80,14 @@ const Phones: React.FC<PhonesProps> = ({ onRefresh }) => {
   // Handle phone selection
   const handleSelectPhone = (phone: OzlukTelefon) => {
     setSelectedPhone(phone);
+    const phoneType =
+      typeof phone.telefonTipi === "string"
+        ? parseInt(phone.telefonTipi)
+        : phone.telefonTipi;
     setForm({
       ulkeKodu: phone.ulkeKodu,
       telefonNo: phone.telefonNo,
-      telefonTipi: phone.telefonTipi as any,
+      telefonTipi: phoneType as TelefonTipi,
       oncelikli: phone.oncelikli,
     });
     setIsAdding(false);
@@ -65,9 +97,9 @@ const Phones: React.FC<PhonesProps> = ({ onRefresh }) => {
   const handleAddNew = () => {
     setSelectedPhone(null);
     setForm({
-      ulkeKodu: '',
-      telefonNo: '',
-      telefonTipi: 'CEP',
+      ulkeKodu: "",
+      telefonNo: "",
+      telefonTipi: TelefonTipi.CEP,
       oncelikli: false,
     });
     setIsAdding(true);
@@ -91,7 +123,7 @@ const Phones: React.FC<PhonesProps> = ({ onRefresh }) => {
       setError(null);
       if (onRefresh) onRefresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'İşlem başarısız');
+      setError(err instanceof Error ? err.message : "İşlem başarısız");
     } finally {
       setIsLoading(false);
     }
@@ -100,7 +132,8 @@ const Phones: React.FC<PhonesProps> = ({ onRefresh }) => {
   // Handle delete
   const handleDelete = async () => {
     if (!selectedPhone) return;
-    if (!confirm('Bu telefon numarasını silmek istediğinize emin misiniz?')) return;
+    if (!confirm("Bu telefon numarasını silmek istediğinize emin misiniz?"))
+      return;
 
     try {
       setIsLoading(true);
@@ -111,7 +144,7 @@ const Phones: React.FC<PhonesProps> = ({ onRefresh }) => {
       setError(null);
       if (onRefresh) onRefresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Silme işlemi başarısız');
+      setError(err instanceof Error ? err.message : "Silme işlemi başarısız");
     } finally {
       setIsLoading(false);
     }
@@ -137,18 +170,21 @@ const Phones: React.FC<PhonesProps> = ({ onRefresh }) => {
                     key={phone.telefonUuid}
                     style={[
                       styles.dropdownItem,
-                      selectedPhone?.telefonUuid === phone.telefonUuid && styles.selectedItem,
+                      selectedPhone?.telefonUuid === phone.telefonUuid &&
+                        styles.selectedItem,
                       hoveredItem === phone.telefonUuid && styles.hoveredItem,
                     ]}
                     onPress={() => handleSelectPhone(phone)}
-                    {...(Platform.OS === 'web' && {
-                      onMouseEnter: () => setHoveredItem(phone.telefonUuid),
-                      onMouseLeave: () => setHoveredItem(null),
-                    } as any)}
+                    {...(Platform.OS === "web" &&
+                      ({
+                        onMouseEnter: () => setHoveredItem(phone.telefonUuid),
+                        onMouseLeave: () => setHoveredItem(null),
+                      } as any))}
                   >
                     <Text style={styles.dropdownItemText}>
-                      {phone.ulkeKodu} {phone.telefonNo} ({phone.telefonTipi})
-                      {phone.oncelikli && ' ⭐'}
+                      {phone.ulkeKodu} {phone.telefonNo} (
+                      {getPhoneTypeLabel(phone.telefonTipi)})
+                      {phone.oncelikli && " ⭐"}
                     </Text>
                   </Pressable>
                 ))}
@@ -162,7 +198,7 @@ const Phones: React.FC<PhonesProps> = ({ onRefresh }) => {
           {(isAdding || selectedPhone) && (
             <View style={styles.formContainer}>
               <Text style={styles.formTitle}>
-                {isAdding ? 'Yeni Telefon Ekle' : 'Telefonu Düzenle'}
+                {isAdding ? "Yeni Telefon Ekle" : "Telefonu Düzenle"}
               </Text>
 
               <TextInput
@@ -183,23 +219,27 @@ const Phones: React.FC<PhonesProps> = ({ onRefresh }) => {
               <View style={styles.pickerContainer}>
                 <Text style={styles.label}>Telefon Tipi:</Text>
                 <View style={styles.typeButtons}>
-                  {phoneTypes.map((type) => (
+                  {phoneTypeOptions.map((option) => (
                     <Pressable
-                      key={type}
+                      key={option.value}
                       style={[
                         styles.typeButton,
-                        form.telefonTipi === type && styles.typeButtonActive,
+                        form.telefonTipi === option.value &&
+                          styles.typeButtonActive,
                       ]}
-                      onPress={() => setForm({ ...form, telefonTipi: type as any })}
+                      onPress={() =>
+                        setForm({ ...form, telefonTipi: option.value })
+                      }
                       disabled={isLoading}
                     >
                       <Text
                         style={[
                           styles.typeButtonText,
-                          form.telefonTipi === type && styles.typeButtonTextActive,
+                          form.telefonTipi === option.value &&
+                            styles.typeButtonTextActive,
                         ]}
                       >
-                        {type}
+                        {option.label}
                       </Text>
                     </Pressable>
                   ))}
@@ -207,7 +247,10 @@ const Phones: React.FC<PhonesProps> = ({ onRefresh }) => {
               </View>
 
               <Pressable
-                style={[styles.checkbox, form.oncelikli && styles.checkboxChecked]}
+                style={[
+                  styles.checkbox,
+                  form.oncelikli && styles.checkboxChecked,
+                ]}
                 onPress={() => setForm({ ...form, oncelikli: !form.oncelikli })}
               >
                 <Text style={styles.checkboxLabel}>Öncelikli Telefon</Text>
@@ -216,7 +259,11 @@ const Phones: React.FC<PhonesProps> = ({ onRefresh }) => {
               {/* Buttons */}
               <View style={styles.buttonContainer}>
                 <Pressable
-                  style={[styles.button, styles.saveButton, isLoading && styles.buttonDisabled]}
+                  style={[
+                    styles.button,
+                    styles.saveButton,
+                    isLoading && styles.buttonDisabled,
+                  ]}
                   onPress={handleSave}
                   disabled={isLoading}
                 >
@@ -225,7 +272,11 @@ const Phones: React.FC<PhonesProps> = ({ onRefresh }) => {
 
                 {selectedPhone && (
                   <Pressable
-                    style={[styles.button, styles.deleteButton, isLoading && styles.buttonDisabled]}
+                    style={[
+                      styles.button,
+                      styles.deleteButton,
+                      isLoading && styles.buttonDisabled,
+                    ]}
                     onPress={handleDelete}
                     disabled={isLoading}
                   >
@@ -267,25 +318,25 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 20,
     borderRadius: 8,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: "#f9f9f9",
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    overflow: 'hidden',
+    borderColor: "#e0e0e0",
+    overflow: "hidden",
   },
   sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    cursor: Platform.OS === 'web' ? 'pointer' : undefined,
+    borderBottomColor: "#e0e0e0",
+    cursor: Platform.OS === "web" ? "pointer" : undefined,
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#181818',
+    fontWeight: "600",
+    color: "#181818",
   },
   sectionContent: {
     padding: 16,
@@ -295,107 +346,107 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#333',
+    fontWeight: "500",
+    color: "#333",
     marginBottom: 8,
   },
   dropdown: {
     maxHeight: 150,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: "#e0e0e0",
     borderRadius: 6,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   dropdownItem: {
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-    cursor: Platform.OS === 'web' ? 'pointer' : undefined,
+    borderBottomColor: "#f0f0f0",
+    cursor: Platform.OS === "web" ? "pointer" : undefined,
   },
   dropdownItemText: {
     fontSize: 13,
-    color: '#333',
+    color: "#333",
   },
   selectedItem: {
-    backgroundColor: '#e8f4f8',
+    backgroundColor: "#e8f4f8",
   },
   hoveredItem: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   formContainer: {
     marginTop: 16,
     padding: 12,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: "#e0e0e0",
   },
   formTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 12,
-    color: '#181818',
+    color: "#181818",
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 6,
     padding: 10,
     marginBottom: 10,
     fontSize: 14,
-    backgroundColor: '#fff',
-    color: '#333',
+    backgroundColor: "#fff",
+    color: "#333",
   },
   pickerContainer: {
     marginBottom: 12,
   },
   typeButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
   },
   typeButton: {
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#f5f5f5',
-    cursor: Platform.OS === 'web' ? 'pointer' : undefined,
+    borderColor: "#ddd",
+    backgroundColor: "#f5f5f5",
+    cursor: Platform.OS === "web" ? "pointer" : undefined,
   },
   typeButtonActive: {
-    backgroundColor: '#0288d1',
-    borderColor: '#0288d1',
+    backgroundColor: "#0288d1",
+    borderColor: "#0288d1",
   },
   typeButtonText: {
     fontSize: 12,
-    color: '#333',
-    fontWeight: '500',
+    color: "#333",
+    fontWeight: "500",
   },
   typeButtonTextActive: {
-    color: '#fff',
+    color: "#fff",
   },
   checkbox: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 10,
     marginBottom: 12,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#f5f5f5',
+    borderColor: "#ddd",
+    backgroundColor: "#f5f5f5",
   },
   checkboxChecked: {
-    backgroundColor: '#e8f4f8',
-    borderColor: '#0288d1',
+    backgroundColor: "#e8f4f8",
+    borderColor: "#0288d1",
   },
   checkboxLabel: {
     fontSize: 14,
-    color: '#333',
+    color: "#333",
     marginLeft: 8,
   },
   buttonContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
   },
   button: {
@@ -403,22 +454,22 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 6,
-    alignItems: 'center',
-    cursor: Platform.OS === 'web' ? 'pointer' : undefined,
+    alignItems: "center",
+    cursor: Platform.OS === "web" ? "pointer" : undefined,
   },
   saveButton: {
-    backgroundColor: '#4caf50',
+    backgroundColor: "#4caf50",
   },
   deleteButton: {
-    backgroundColor: '#f44336',
+    backgroundColor: "#f44336",
   },
   cancelButton: {
-    backgroundColor: '#999',
+    backgroundColor: "#999",
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -427,26 +478,26 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#2196f3',
-    borderStyle: 'dashed',
-    alignItems: 'center',
-    backgroundColor: '#f0f7ff',
-    cursor: Platform.OS === 'web' ? 'pointer' : undefined,
+    borderColor: "#2196f3",
+    borderStyle: "dashed",
+    alignItems: "center",
+    backgroundColor: "#f0f7ff",
+    cursor: Platform.OS === "web" ? "pointer" : undefined,
   },
   addButtonText: {
-    color: '#2196f3',
+    color: "#2196f3",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   emptyText: {
     fontSize: 13,
-    color: '#999',
-    fontStyle: 'italic',
+    color: "#999",
+    fontStyle: "italic",
     marginBottom: 12,
   },
   errorText: {
-    backgroundColor: '#ffebee',
-    color: '#c62828',
+    backgroundColor: "#ffebee",
+    color: "#c62828",
     padding: 10,
     borderRadius: 6,
     marginBottom: 12,
