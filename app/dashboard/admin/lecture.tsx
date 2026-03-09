@@ -520,8 +520,13 @@ const LectureManagement: React.FC = () => {
         <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />
       )}
 
-      <ScrollView style={styles.tableContainer}>
-        <View style={styles.tableHeader}>
+      <View style={styles.tableContainer}>
+        <View
+          style={[
+            styles.tableHeader,
+            { position: "sticky", top: 0, zIndex: 10 },
+          ]}
+        >
           <Text style={[styles.tableHeaderText, styles.colCode]}>
             {LectureTexts.table.code}
           </Text>
@@ -542,109 +547,114 @@ const LectureManagement: React.FC = () => {
           </Text>
         </View>
 
-        {Array.isArray(lectures) &&
-          lectures.map((lecture, index) => (
-            <View
-              key={lecture.dersUuid}
-              style={[styles.tableRow, index % 2 === 0 && styles.tableRowEven]}
-            >
-              <View style={styles.colCode}>
-                <View style={styles.codeCellContainer}>
-                  <Text style={styles.tableCell}>{lecture.dersKodu}</Text>
-                  <Pressable
-                    style={styles.copyButton}
-                    onPress={() =>
-                      handleCopyToClipboard(lecture.dersKodu, "Ders Kodu")
-                    }
-                  >
-                    <IconSymbol name="copy" size={12} color="#007AFF" />
-                  </Pressable>
+        <ScrollView style={{ flex: 1 }}>
+          {Array.isArray(lectures) &&
+            lectures.map((lecture, index) => (
+              <View
+                key={lecture.dersUuid}
+                style={[
+                  styles.tableRow,
+                  index % 2 === 0 && styles.tableRowEven,
+                ]}
+              >
+                <View style={styles.colCode}>
+                  <View style={styles.codeCellContainer}>
+                    <Text style={styles.tableCell}>{lecture.dersKodu}</Text>
+                    <Pressable
+                      style={styles.copyButton}
+                      onPress={() =>
+                        handleCopyToClipboard(lecture.dersKodu, "Ders Kodu")
+                      }
+                    >
+                      <IconSymbol name="copy" size={12} color="#007AFF" />
+                    </Pressable>
+                  </View>
+                </View>
+
+                <View style={styles.colName}>
+                  <Text style={styles.tableCell}>{lecture.dersAdi}</Text>
+                </View>
+
+                <View style={styles.colCredit}>
+                  <Text style={styles.tableCell}>{lecture.kredi}</Text>
+                </View>
+
+                <View style={styles.colEcts}>
+                  <Text style={styles.tableCell}>{lecture.akts}</Text>
+                </View>
+
+                <View style={styles.colHours}>
+                  <Text style={styles.tableCell}>
+                    {lecture.haftalikDersSaati}
+                  </Text>
+                </View>
+
+                <View style={styles.colActions}>
+                  <View style={styles.tableCellActions}>
+                    <Pressable
+                      style={styles.editButton}
+                      onPress={() => handleViewModeChange("edit", lecture)}
+                    >
+                      <IconSymbol name="pencil" size={12} color="#007AFF" />
+                      <Text
+                        style={[styles.actionButtonText, { color: "#007AFF" }]}
+                      >
+                        {LectureTexts.actions.edit}
+                      </Text>
+                    </Pressable>
+
+                    <Pressable
+                      style={styles.viewButton}
+                      onPress={() => handleViewModeChange("view", lecture)}
+                    >
+                      <IconSymbol
+                        name="magnifyingglass"
+                        size={12}
+                        color="#34C759"
+                      />
+                      <Text style={styles.viewButtonText}>
+                        {LectureTexts.actions.view}
+                      </Text>
+                    </Pressable>
+
+                    <Pressable
+                      style={styles.deleteButton}
+                      onPress={() => {
+                        Alert.alert(
+                          "Silme Onayı",
+                          `${lecture.dersKodu} - ${lecture.dersAdi} dersini silmek istediğinizden emin misiniz?`,
+                          [
+                            { text: "İptal", style: "cancel" },
+                            {
+                              text: "Sil",
+                              style: "destructive",
+                              onPress: () => handleDeleteLecture(lecture),
+                            },
+                          ],
+                        );
+                      }}
+                    >
+                      <IconSymbol name="trash" size={12} color="#FF3B30" />
+                      <Text
+                        style={[styles.actionButtonText, { color: "#FF3B30" }]}
+                      >
+                        {LectureTexts.actions.delete}
+                      </Text>
+                    </Pressable>
+                  </View>
                 </View>
               </View>
+            ))}
 
-              <View style={styles.colName}>
-                <Text style={styles.tableCell}>{lecture.dersAdi}</Text>
-              </View>
-
-              <View style={styles.colCredit}>
-                <Text style={styles.tableCell}>{lecture.kredi}</Text>
-              </View>
-
-              <View style={styles.colEcts}>
-                <Text style={styles.tableCell}>{lecture.akts}</Text>
-              </View>
-
-              <View style={styles.colHours}>
-                <Text style={styles.tableCell}>
-                  {lecture.haftalikDersSaati}
-                </Text>
-              </View>
-
-              <View style={styles.colActions}>
-                <View style={styles.tableCellActions}>
-                  <Pressable
-                    style={styles.editButton}
-                    onPress={() => handleViewModeChange("edit", lecture)}
-                  >
-                    <IconSymbol name="pencil" size={12} color="#007AFF" />
-                    <Text
-                      style={[styles.actionButtonText, { color: "#007AFF" }]}
-                    >
-                      {LectureTexts.actions.edit}
-                    </Text>
-                  </Pressable>
-
-                  <Pressable
-                    style={styles.viewButton}
-                    onPress={() => handleViewModeChange("view", lecture)}
-                  >
-                    <IconSymbol
-                      name="magnifyingglass"
-                      size={12}
-                      color="#34C759"
-                    />
-                    <Text style={styles.viewButtonText}>
-                      {LectureTexts.actions.view}
-                    </Text>
-                  </Pressable>
-
-                  <Pressable
-                    style={styles.deleteButton}
-                    onPress={() => {
-                      Alert.alert(
-                        "Silme Onayı",
-                        `${lecture.dersKodu} - ${lecture.dersAdi} dersini silmek istediğinizden emin misiniz?`,
-                        [
-                          { text: "İptal", style: "cancel" },
-                          {
-                            text: "Sil",
-                            style: "destructive",
-                            onPress: () => handleDeleteLecture(lecture),
-                          },
-                        ],
-                      );
-                    }}
-                  >
-                    <IconSymbol name="trash" size={12} color="#FF3B30" />
-                    <Text
-                      style={[styles.actionButtonText, { color: "#FF3B30" }]}
-                    >
-                      {LectureTexts.actions.delete}
-                    </Text>
-                  </Pressable>
-                </View>
-              </View>
+          {(!Array.isArray(lectures) || lectures.length === 0) && !loading && (
+            <View style={styles.noDataContainer}>
+              <Text style={styles.noDataText}>
+                {LectureTexts.messages.noData}
+              </Text>
             </View>
-          ))}
-
-        {(!Array.isArray(lectures) || lectures.length === 0) && !loading && (
-          <View style={styles.noDataContainer}>
-            <Text style={styles.noDataText}>
-              {LectureTexts.messages.noData}
-            </Text>
-          </View>
-        )}
-      </ScrollView>
+          )}
+        </ScrollView>
+      </View>
 
       <View style={styles.pagination}>
         <Text style={styles.paginationText}>

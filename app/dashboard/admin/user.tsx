@@ -529,8 +529,8 @@ const UserManagement: React.FC = () => {
         <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />
       )}
 
-      <ScrollView style={styles.tableContainer}>
-        <View style={styles.tableHeader}>
+      <View style={styles.tableContainer}>
+        <View style={[styles.tableHeader, { stickyTop: 0, zIndex: 10 }]}>
           <Text style={[styles.tableHeaderText, styles.colName]}>
             {UserTexts.table.fullName}
           </Text>
@@ -548,110 +548,118 @@ const UserManagement: React.FC = () => {
           </Text>
         </View>
 
-        {users.map((user, index) => (
-          <View
-            key={user.kullaniciUuid}
-            style={[styles.tableRow, index % 2 === 0 && styles.tableRowEven]}
-          >
-            <Text style={[styles.tableCell, styles.colName]}>
-              {`${user.ad || ""} ${user.ortaAd || ""} ${user.soyad || ""}`.trim() ||
-                "-"}
-            </Text>
+        <ScrollView style={{ flex: 1 }}>
+          {users.map((user, index) => (
             <View
-              style={[
-                styles.tableCell,
-                styles.colEmail,
-                styles.emailCellContainer,
-              ]}
+              key={user.kullaniciUuid}
+              style={[styles.tableRow, index % 2 === 0 && styles.tableRowEven]}
             >
-              <Text style={styles.emailText}>{user.kurumEposta}</Text>
-              <View style={styles.emailActions}>
+              <Text style={[styles.tableCell, styles.colName]}>
+                {`${user.ad || ""} ${user.ortaAd || ""} ${user.soyad || ""}`.trim() ||
+                  "-"}
+              </Text>
+              <View
+                style={[
+                  styles.tableCell,
+                  styles.colEmail,
+                  styles.emailCellContainer,
+                ]}
+              >
+                <Text style={styles.emailText}>{user.kurumEposta}</Text>
+                <View style={styles.emailActions}>
+                  <Pressable
+                    style={styles.emailActionButton}
+                    onPress={() => handleMailTo(user.kurumEposta)}
+                    onPressIn={handleMailtoTooltipShow}
+                    onPressOut={handleMailtoTooltipHide}
+                    onMouseEnter={handleMailtoTooltipShow}
+                    onMouseLeave={handleMailtoTooltipHide}
+                  >
+                    <IconSymbol name="envelope" size={12} color="#34C759" />
+                  </Pressable>
+                  <Pressable
+                    style={styles.emailActionButton}
+                    onPress={() =>
+                      handleCopyToClipboard(
+                        user.kurumEposta,
+                        UserTexts.labels.email.replace(":", ""),
+                      )
+                    }
+                  >
+                    <IconSymbol name="copy" size={12} color="#007AFF" />
+                  </Pressable>
+                </View>
+              </View>
+              <View
+                style={[
+                  styles.tableCell,
+                  styles.colSicil,
+                  styles.sicilCellContainer,
+                ]}
+              >
+                <Text style={styles.sicilText}>{user.kurumSicilNo}</Text>
                 <Pressable
-                  style={styles.emailActionButton}
-                  onPress={() => handleMailTo(user.kurumEposta)}
-                  onPressIn={handleMailtoTooltipShow}
-                  onPressOut={handleMailtoTooltipHide}
-                  onMouseEnter={handleMailtoTooltipShow}
-                  onMouseLeave={handleMailtoTooltipHide}
-                >
-                  <IconSymbol name="envelope" size={12} color="#34C759" />
-                </Pressable>
-                <Pressable
-                  style={styles.emailActionButton}
+                  style={styles.sicilActionButton}
                   onPress={() =>
                     handleCopyToClipboard(
-                      user.kurumEposta,
-                      UserTexts.labels.email.replace(":", ""),
+                      user.kurumSicilNo,
+                      UserTexts.labels.sicil.replace(":", ""),
                     )
                   }
                 >
                   <IconSymbol name="copy" size={12} color="#007AFF" />
                 </Pressable>
               </View>
+              <Text style={[styles.tableCell, styles.colType]}>
+                {getUserTypeLabel(user.kullaniciTipi)}
+              </Text>
+              <View style={[styles.tableCellActions, styles.colActions]}>
+                <Pressable
+                  style={styles.editButton}
+                  onPress={() => handleViewModeChange("edit", user)}
+                >
+                  <IconSymbol name="pencil" size={14} color="#007AFF" />
+                  <Text style={[styles.actionButtonText, { color: "#007AFF" }]}>
+                    {UserTexts.actions.edit}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={styles.profileButton}
+                  onPress={() => handleViewModeChange("profile", user)}
+                >
+                  <IconSymbol
+                    name="paperplane.fill"
+                    size={14}
+                    color="#34C759"
+                  />
+                  <Text style={styles.profileButtonText}>
+                    {UserTexts.actions.profile}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={styles.deleteButton}
+                  onPress={() => {
+                    handleDeleteUser(user);
+                  }}
+                >
+                  <IconSymbol name="trash" size={14} color="#FF3B30" />
+                  <Text style={[styles.actionButtonText, { color: "#FF3B30" }]}>
+                    {UserTexts.actions.delete}
+                  </Text>
+                </Pressable>
+              </View>
             </View>
-            <View
-              style={[
-                styles.tableCell,
-                styles.colSicil,
-                styles.sicilCellContainer,
-              ]}
-            >
-              <Text style={styles.sicilText}>{user.kurumSicilNo}</Text>
-              <Pressable
-                style={styles.sicilActionButton}
-                onPress={() =>
-                  handleCopyToClipboard(
-                    user.kurumSicilNo,
-                    UserTexts.labels.sicil.replace(":", ""),
-                  )
-                }
-              >
-                <IconSymbol name="copy" size={12} color="#007AFF" />
-              </Pressable>
-            </View>
-            <Text style={[styles.tableCell, styles.colType]}>
-              {getUserTypeLabel(user.kullaniciTipi)}
-            </Text>
-            <View style={[styles.tableCellActions, styles.colActions]}>
-              <Pressable
-                style={styles.editButton}
-                onPress={() => handleViewModeChange("edit", user)}
-              >
-                <IconSymbol name="pencil" size={14} color="#007AFF" />
-                <Text style={[styles.actionButtonText, { color: "#007AFF" }]}>
-                  {UserTexts.actions.edit}
-                </Text>
-              </Pressable>
-              <Pressable
-                style={styles.profileButton}
-                onPress={() => handleViewModeChange("profile", user)}
-              >
-                <IconSymbol name="paperplane.fill" size={14} color="#34C759" />
-                <Text style={styles.profileButtonText}>
-                  {UserTexts.actions.profile}
-                </Text>
-              </Pressable>
-              <Pressable
-                style={styles.deleteButton}
-                onPress={() => {
-                  handleDeleteUser(user);
-                }}
-              >
-                <IconSymbol name="trash" size={14} color="#FF3B30" />
-                <Text style={[styles.actionButtonText, { color: "#FF3B30" }]}>
-                  {UserTexts.actions.delete}
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        ))}
+          ))}
 
-        {users.length === 0 && !loading && (
-          <View style={styles.noDataContainer}>
-            <Text style={styles.noDataText}>{UserTexts.messages.noData}</Text>
-          </View>
-        )}
-      </ScrollView>
+          {users.length === 0 && !loading && (
+            <View style={styles.noDataContainer}>
+              <Text style={styles.noDataText}>
+                Henüz kullanıcı kaydı bulunmuyor.
+              </Text>
+            </View>
+          )}
+        </ScrollView>
+      </View>
 
       <View style={styles.pagination}>
         <Text style={styles.paginationText}>
