@@ -65,19 +65,9 @@ const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
       icon: "👥",
       items: [
         {
-          id: "users-list",
-          label: "Kullanıcı Listesi",
-          route: "/dashboard/users",
-        },
-        {
-          id: "users-create",
-          label: "Yeni Kullanıcı",
-          route: "/dashboard/users/create",
-        },
-        {
-          id: "usersedit",
-          label: "Kullanıcı Düzenle",
-          route: "/dashboard/users/edit",
+          id: "users-management",
+          label: "Kullanıcı Yönetimi",
+          route: "/dashboard/admin/user",
         },
       ],
     },
