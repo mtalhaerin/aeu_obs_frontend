@@ -1,12 +1,12 @@
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { IconSymbol } from "../../ui/icon-symbol";
 
@@ -77,14 +77,9 @@ const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
       icon: "book",
       items: [
         {
-          id: "courses-list",
-          label: "Ders Listesi",
-          route: "/dashboard/courses",
-        },
-        {
-          id: "courses-create",
-          label: "Yeni Ders",
-          route: "/dashboard/courses/create",
+          id: "lectures-management",
+          label: "Ders Yönetimi",
+          route: "/dashboard/admin/lecture",
         },
         {
           id: "courses-schedule",
