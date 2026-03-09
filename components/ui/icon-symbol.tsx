@@ -32,6 +32,7 @@ const MAPPING = {
   graduationcap: { type: "material", name: "school" },
   "chart.bar": { type: "material", name: "bar-chart" },
   gear: { type: "material", name: "settings" },
+  "building.2": { type: "material", name: "account-balance" },
   flask: { type: "material", name: "science" },
   "location.pin": { type: "material", name: "location-on" },
   envelope: { type: "material", name: "email" },

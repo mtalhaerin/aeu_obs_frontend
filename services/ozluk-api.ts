@@ -139,7 +139,7 @@ export interface AddresDeleteRequest {
 export const addressAPI = {
   async getAddresses(targetUserUuid?: string): Promise<OzlukAdres[]> {
     const response = await apiCall<any>(
-      "/api/Ozluk/addreses",
+      "/api/Personal/addreses",
       "GET",
       null,
       targetUserUuid,
@@ -153,7 +153,7 @@ export const addressAPI = {
     targetUserUuid?: string,
   ): Promise<OzlukAdres> {
     return apiCall(
-      `/api/Ozluk/addres/${adresUuid}`,
+      `/api/Personal/addres/${adresUuid}`,
       "GET",
       null,
       targetUserUuid,
@@ -164,14 +164,14 @@ export const addressAPI = {
     data: AddresAddRequest,
     targetUserUuid?: string,
   ): Promise<OzlukAdres> {
-    return apiCall("/api/Ozluk/addres", "POST", data, targetUserUuid);
+    return apiCall("/api/Personal/addres", "POST", data, targetUserUuid);
   },
 
   async updateAddress(
     data: AddresUpdateRequest,
     targetUserUuid?: string,
   ): Promise<OzlukAdres> {
-    return apiCall("/api/Ozluk/addres", "PUT", data, targetUserUuid);
+    return apiCall("/api/Personal/addres", "PUT", data, targetUserUuid);
   },
 
   async deleteAddress(
@@ -179,7 +179,7 @@ export const addressAPI = {
     targetUserUuid?: string,
   ): Promise<void> {
     return apiCall(
-      "/api/Ozluk/addres",
+      "/api/Personal/addres",
       "DELETE",
       { adresUuid },
       targetUserUuid,
@@ -220,7 +220,7 @@ export interface EmailDeleteRequest {
 export const emailAPI = {
   async getEmails(targetUserUuid?: string): Promise<OzlukEmail[]> {
     const response = await apiCall<any>(
-      "/api/Ozluk/emails",
+      "/api/Personal/emails",
       "GET",
       null,
       targetUserUuid,
@@ -234,7 +234,7 @@ export const emailAPI = {
     targetUserUuid?: string,
   ): Promise<OzlukEmail> {
     return apiCall(
-      `/api/Ozluk/email/${epostaUuid}`,
+      `/api/Personal/email/${epostaUuid}`,
       "GET",
       null,
       targetUserUuid,
@@ -245,14 +245,14 @@ export const emailAPI = {
     data: EmailAddRequest,
     targetUserUuid?: string,
   ): Promise<OzlukEmail> {
-    return apiCall("/api/Ozluk/email", "POST", data, targetUserUuid);
+    return apiCall("/api/Personal/email", "POST", data, targetUserUuid);
   },
 
   async updateEmail(
     data: EmailUpdateRequest,
     targetUserUuid?: string,
   ): Promise<OzlukEmail> {
-    return apiCall("/api/Ozluk/email", "PUT", data, targetUserUuid);
+    return apiCall("/api/Personal/email", "PUT", data, targetUserUuid);
   },
 
   async deleteEmail(
@@ -260,7 +260,7 @@ export const emailAPI = {
     targetUserUuid?: string,
   ): Promise<void> {
     return apiCall(
-      "/api/Ozluk/email",
+      "/api/Personal/email",
       "DELETE",
       { epostaUuid },
       targetUserUuid,
@@ -302,7 +302,7 @@ export interface PhoneDeleteRequest {
 export const phoneAPI = {
   async getPhones(targetUserUuid?: string): Promise<OzlukTelefon[]> {
     const response = await apiCall<any>(
-      "/api/Ozluk/phones",
+      "/api/Personal/phones",
       "GET",
       null,
       targetUserUuid,
@@ -316,7 +316,7 @@ export const phoneAPI = {
     targetUserUuid?: string,
   ): Promise<OzlukTelefon> {
     return apiCall(
-      `/api/Ozluk/phone/${telefonUuid}`,
+      `/api/Personal/phone/${telefonUuid}`,
       "GET",
       null,
       targetUserUuid,
@@ -327,14 +327,14 @@ export const phoneAPI = {
     data: PhoneAddRequest,
     targetUserUuid?: string,
   ): Promise<OzlukTelefon> {
-    return apiCall("/api/Ozluk/phone", "POST", data, targetUserUuid);
+    return apiCall("/api/Personal/phone", "POST", data, targetUserUuid);
   },
 
   async updatePhone(
     data: PhoneUpdateRequest,
     targetUserUuid?: string,
   ): Promise<OzlukTelefon> {
-    return apiCall("/api/Ozluk/phone", "PUT", data, targetUserUuid);
+    return apiCall("/api/Personal/phone", "PUT", data, targetUserUuid);
   },
 
   async deletePhone(
@@ -342,7 +342,7 @@ export const phoneAPI = {
     targetUserUuid?: string,
   ): Promise<void> {
     return apiCall(
-      "/api/Ozluk/phone",
+      "/api/Personal/phone",
       "DELETE",
       { telefonUuid },
       targetUserUuid,

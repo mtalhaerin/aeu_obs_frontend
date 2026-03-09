@@ -5,6 +5,9 @@ import SecureHeader from "../components/secure-header";
 import { RouterTexts } from "../components/texts/router-texts";
 import ChangePassword from "./auth/change-password";
 import Logout from "./auth/logout";
+import FacultyManagement from "./dashboard/admin/faculty";
+import MajorManagement from "./dashboard/admin/major";
+import MinorManagement from "./dashboard/admin/minor";
 import UserManagement from "./dashboard/admin/user";
 import Profile from "./profile";
 
@@ -64,6 +67,30 @@ const Router: React.FC<RouterProps> = ({
             }}
           />
           <Stack.Screen
+            name="Faculty"
+            component={FacultyManagement}
+            options={{
+              headerRight: () => <SecureHeader />,
+              title: "Fakülte Yönetimi",
+            }}
+          />
+          <Stack.Screen
+            name="Major"
+            component={MajorManagement}
+            options={{
+              headerRight: () => <SecureHeader />,
+              title: "Ana Dal Yönetimi",
+            }}
+          />
+          <Stack.Screen
+            name="Minor"
+            component={MinorManagement}
+            options={{
+              headerRight: () => <SecureHeader />,
+              title: "Bölüm Yönetimi",
+            }}
+          />
+          <Stack.Screen
             name="Logout"
             component={Logout}
             options={{
@@ -91,4 +118,7 @@ export const ROUTES = {
   DASHBOARD: "/dashboard",
   USER: "/dashboard/admin/user",
   PROFILE: "/profile",
+  MAJOR: "/dashboard/admin/major",
+  MINOR: "/dashboard/admin/minor",
+  FACULTY: "/dashboard/admin/faculty",
 } as const;

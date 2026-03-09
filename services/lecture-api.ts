@@ -165,7 +165,7 @@ export const lectureAPI = {
       queryParams.append("PageSize", params.pageSize.toString());
     }
 
-    const endpoint = `/api/Ders/lectures${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
+    const endpoint = `/api/Lecture/lectures${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
 
     try {
       const response = await apiCall<any>(endpoint, "GET");
@@ -202,22 +202,22 @@ export const lectureAPI = {
   },
 
   async getLecture(dersUuid: string): Promise<Lecture> {
-    const endpoint = `/api/Ders/lecture?DersUuid=${encodeURIComponent(dersUuid)}`;
+    const endpoint = `/api/Lecture/lecture?DersUuid=${encodeURIComponent(dersUuid)}`;
     return apiCall<Lecture>(endpoint, "GET");
   },
 
   async createLecture(data: LectureCreateRequest): Promise<Lecture> {
-    return apiCall<Lecture>("/api/Ders/lecture", "POST", data);
+    return apiCall<Lecture>("/api/Lecture/lecture", "POST", data);
   },
 
   async updateLecture(data: LectureUpdateRequest): Promise<Lecture> {
-    return apiCall<Lecture>("/api/Ders/lecture", "PUT", data);
+    return apiCall<Lecture>("/api/Lecture/lecture", "PUT", data);
   },
 
   async deleteLecture(dersUuid: string): Promise<void> {
     console.log("deleteLecture called with UUID:", dersUuid);
     const deleteData: LectureDeleteRequest = { dersUuid };
     console.log("Sending DELETE request with body:", deleteData);
-    return apiCall<void>("/api/Ders/lecture", "DELETE", deleteData);
+    return apiCall<void>("/api/Lecture/lecture", "DELETE", deleteData);
   },
 };

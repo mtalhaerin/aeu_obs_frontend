@@ -1,12 +1,12 @@
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { IconSymbol } from "../../ui/icon-symbol";
 
@@ -52,10 +52,32 @@ const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
           label: "Genel Bakış",
           route: "/dashboard/dashboard",
         },
+        // {
+        //   id: "dashboard-stats",
+        //   label: "İstatistikler",
+        //   route: "/dashboard/stats",
+        // },
+      ],
+    },
+    {
+      id: "akademikYapi",
+      title: "Akademik Yapı",
+      icon: "building.2",
+      items: [
         {
-          id: "dashboard-stats",
-          label: "İstatistikler",
-          route: "/dashboard/stats",
+          id: "faculty-management",
+          label: "Fakülte Yönetimi",
+          route: "/dashboard/admin/faculty",
+        },
+        {
+          id: "major-management",
+          label: "Ana Dal Yönetimi",
+          route: "/dashboard/admin/major",
+        },
+        {
+          id: "minor-management",
+          label: "Bölüm Yönetimi",
+          route: "/dashboard/admin/minor",
         },
       ],
     },
@@ -81,11 +103,11 @@ const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
           label: "Ders Yönetimi",
           route: "/dashboard/admin/lecture",
         },
-        {
-          id: "courses-schedule",
-          label: "Ders Programı",
-          route: "/dashboard/courses/schedule",
-        },
+        // {
+        //   id: "courses-schedule",
+        //   label: "Ders Programı",
+        //   route: "/dashboard/courses/schedule",
+        // },
       ],
     },
     {
@@ -98,52 +120,52 @@ const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
           label: "Öğrenci Listesi",
           route: "/dashboard/students",
         },
-        {
-          id: "students-enrollment",
-          label: "Ders Kaydı",
-          route: "/dashboard/students/enrollment",
-        },
-        {
-          id: "students-grades",
-          label: "Not Girişi",
-          route: "/dashboard/students/grades",
-        },
+        // {
+        //   id: "students-enrollment",
+        //   label: "Ders Kaydı",
+        //   route: "/dashboard/students/enrollment",
+        // },
+        // {
+        //   id: "students-grades",
+        //   label: "Not Girişi",
+        //   route: "/dashboard/students/grades",
+        // },
       ],
     },
-    {
-      id: "reports",
-      title: "Raporlar",
-      icon: "chart.bar",
-      items: [
-        {
-          id: "reports-academic",
-          label: "Akademik Raporlar",
-          route: "/dashboard/reports/academic",
-        },
-        {
-          id: "reports-attendance",
-          label: "Devamsızlık Raporları",
-          route: "/dashboard/reports/attendance",
-        },
-      ],
-    },
-    {
-      id: "settings",
-      title: "Ayarlar",
-      icon: "gear",
-      items: [
-        {
-          id: "settings-general",
-          label: "Genel Ayarlar",
-          route: "/dashboard/settings",
-        },
-        {
-          id: "settings-system",
-          label: "Sistem Ayarları",
-          route: "/dashboard/settings/system",
-        },
-      ],
-    },
+    // {
+    //   id: "reports",
+    //   title: "Raporlar",
+    //   icon: "chart.bar",
+    //   items: [
+    //     {
+    //       id: "reports-academic",
+    //       label: "Akademik Raporlar",
+    //       route: "/dashboard/reports/academic",
+    //     },
+    //     {
+    //       id: "reports-attendance",
+    //       label: "Devamsızlık Raporları",
+    //       route: "/dashboard/reports/attendance",
+    //     },
+    //   ],
+    // },
+    // {
+    //   id: "settings",
+    //   title: "Ayarlar",
+    //   icon: "gear",
+    //   items: [
+    //     {
+    //       id: "settings-general",
+    //       label: "Genel Ayarlar",
+    //       route: "/dashboard/settings",
+    //     },
+    //     {
+    //       id: "settings-system",
+    //       label: "Sistem Ayarları",
+    //       route: "/dashboard/settings/system",
+    //     },
+    //   ],
+    // },
   ];
 
   const toggleCategory = (categoryId: string) => {
