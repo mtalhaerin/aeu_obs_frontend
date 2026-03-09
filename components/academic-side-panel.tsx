@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { IconSymbol } from "./ui/icon-symbol";
 
-export interface AdminMenuItem {
+export interface AcademicMenuItem {
   id: string;
   label: string;
   icon?: string;
@@ -18,21 +18,21 @@ export interface AdminMenuItem {
   action?: () => void;
 }
 
-export interface AdminMenuCategory {
+export interface AcademicMenuCategory {
   id: string;
   title: string;
   icon?: string;
-  items: AdminMenuItem[];
+  items: AcademicMenuItem[];
 }
 
-interface AdminSidePanelProps {
+interface AcademicSidePanelProps {
   userName?: string;
   isCollapsed?: boolean;
-  onMenuItemPress?: (item: AdminMenuItem) => void;
+  onMenuItemPress?: (item: AcademicMenuItem) => void;
 }
 
-const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
-  userName = "Admin",
+const AcademicSidePanel: React.FC<AcademicSidePanelProps> = ({
+  userName = "Akademisyen",
   isCollapsed = false,
   onMenuItemPress,
 }) => {
@@ -41,7 +41,7 @@ const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
     "dashboard",
   ]);
 
-  const categories: AdminMenuCategory[] = [
+  const categories: AcademicMenuCategory[] = [
     {
       id: "dashboard",
       title: "Ana Sayfa",
@@ -53,43 +53,31 @@ const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
           route: "/dashboard/dashboard",
         },
         {
-          id: "dashboard-stats",
-          label: "İstatistikler",
-          route: "/dashboard/stats",
-        },
-      ],
-    },
-    {
-      id: "users",
-      title: "Kullanıcı İşlemleri",
-      icon: "person.2",
-      items: [
-        {
-          id: "users-management",
-          label: "Kullanıcı Yönetimi",
-          route: "/dashboard/admin/user",
+          id: "dashboard-calendar",
+          label: "Akademik Takvim",
+          route: "/dashboard/academic/calendar",
         },
       ],
     },
     {
       id: "courses",
-      title: "Ders İşlemleri",
+      title: "Dersler",
       icon: "book",
       items: [
         {
-          id: "courses-list",
-          label: "Ders Listesi",
-          route: "/dashboard/courses",
-        },
-        {
-          id: "courses-create",
-          label: "Yeni Ders",
-          route: "/dashboard/courses/create",
+          id: "courses-my-courses",
+          label: "Verdiğim Dersler",
+          route: "/dashboard/academic/courses",
         },
         {
           id: "courses-schedule",
           label: "Ders Programı",
-          route: "/dashboard/courses/schedule",
+          route: "/dashboard/academic/schedule",
+        },
+        {
+          id: "courses-materials",
+          label: "Ders Materyalleri",
+          route: "/dashboard/academic/materials",
         },
       ],
     },
@@ -101,51 +89,83 @@ const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
         {
           id: "students-list",
           label: "Öğrenci Listesi",
-          route: "/dashboard/students",
-        },
-        {
-          id: "students-enrollment",
-          label: "Ders Kaydı",
-          route: "/dashboard/students/enrollment",
+          route: "/dashboard/academic/students",
         },
         {
           id: "students-grades",
           label: "Not Girişi",
-          route: "/dashboard/students/grades",
+          route: "/dashboard/academic/grades",
+        },
+        {
+          id: "students-attendance",
+          label: "Devam Takibi",
+          route: "/dashboard/academic/attendance",
         },
       ],
     },
     {
-      id: "reports",
-      title: "Raporlar",
-      icon: "chart.bar",
+      id: "exams",
+      title: "Sınavlar",
+      icon: "pencil",
       items: [
         {
-          id: "reports-academic",
-          label: "Akademik Raporlar",
-          route: "/dashboard/reports/academic",
+          id: "exams-schedule",
+          label: "Sınav Programı",
+          route: "/dashboard/academic/exam-schedule",
         },
         {
-          id: "reports-attendance",
-          label: "Devamsızlık Raporları",
-          route: "/dashboard/reports/attendance",
+          id: "exams-create",
+          label: "Sınav Oluştur",
+          route: "/dashboard/academic/create-exam",
+        },
+        {
+          id: "exams-results",
+          label: "Sınav Sonuçları",
+          route: "/dashboard/academic/exam-results",
         },
       ],
     },
     {
-      id: "settings",
-      title: "Ayarlar",
-      icon: "gear",
+      id: "research",
+      title: "Araştırma",
+      icon: "flask",
       items: [
         {
-          id: "settings-general",
-          label: "Genel Ayarlar",
-          route: "/dashboard/settings",
+          id: "research-projects",
+          label: "Projeler",
+          route: "/dashboard/academic/projects",
         },
         {
-          id: "settings-system",
-          label: "Sistem Ayarları",
-          route: "/dashboard/settings/system",
+          id: "research-publications",
+          label: "Yayınlar",
+          route: "/dashboard/academic/publications",
+        },
+        {
+          id: "research-supervision",
+          label: "Danışmanlık",
+          route: "/dashboard/academic/supervision",
+        },
+      ],
+    },
+    {
+      id: "profile",
+      title: "Profil",
+      icon: "person",
+      items: [
+        {
+          id: "profile-info",
+          label: "Kişisel Bilgiler",
+          route: "/dashboard/profile",
+        },
+        {
+          id: "profile-cv",
+          label: "Özgeçmiş",
+          route: "/dashboard/academic/cv",
+        },
+        {
+          id: "profile-office-hours",
+          label: "Ofis Saatleri",
+          route: "/dashboard/academic/office-hours",
         },
       ],
     },
@@ -159,7 +179,7 @@ const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
     );
   };
 
-  const handleMenuItemPress = (item: AdminMenuItem) => {
+  const handleMenuItemPress = (item: AcademicMenuItem) => {
     if (onMenuItemPress) {
       onMenuItemPress(item);
     }
@@ -179,7 +199,7 @@ const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Admin Panel</Text>
+        <Text style={styles.headerTitle}>Akademik Panel</Text>
         <Text style={styles.headerSubtitle}>{userName}</Text>
       </View>
 
@@ -203,7 +223,7 @@ const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
                   <IconSymbol
                     name={category.icon}
                     size={16}
-                    color="#666"
+                    color="#5a7c3a"
                     style={styles.categoryIcon}
                   />
                 )}
@@ -263,17 +283,17 @@ const styles = StyleSheet.create({
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: "#e0e0e0",
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#f0f8f0",
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#181818",
+    color: "#2d5016",
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 13,
-    color: "#666",
+    color: "#5a7c3a",
   },
   menuContainer: {
     flex: 1,
@@ -287,7 +307,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 12,
     borderRadius: 8,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#f7fef7",
     marginBottom: 2,
     cursor: Platform.OS === "web" ? "pointer" : undefined,
   },
@@ -298,7 +318,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     fontWeight: "600",
-    color: "#181818",
+    color: "#2d5016",
   },
   categoryArrowIcon: {
     justifyContent: "center",
@@ -322,7 +342,7 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#999",
+    backgroundColor: "#4caf50",
     marginRight: 10,
   },
   menuLabel: {
@@ -335,13 +355,13 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#e0e0e0",
     alignItems: "center",
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#f0f8f0",
   },
   footerText: {
     fontSize: 11,
     color: "#DAA520",
-    fontWeight: "600",
+    fontWeight: "500",
   },
 });
 
-export default AdminSidePanel;
+export default AcademicSidePanel;

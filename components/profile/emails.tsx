@@ -1,25 +1,26 @@
 import React, { useEffect, useState } from "react";
 import {
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import {
-    EmailAddRequest,
-    emailAPI,
-    EpostaTipi,
-    OzlukEmail,
+  EmailAddRequest,
+  emailAPI,
+  EpostaTipi,
+  OzlukEmail,
 } from "../../services/ozluk-api";
 
 interface EmailsProps {
   onRefresh?: () => void;
+  targetUserUuid?: string; // Admin panel için başka kullanıcının verilerini görüntülemek
 }
 
-const Emails: React.FC<EmailsProps> = ({ onRefresh }) => {
+const Emails: React.FC<EmailsProps> = ({ onRefresh, targetUserUuid }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [emails, setEmails] = useState<OzlukEmail[]>([]);
   const [selectedEmail, setSelectedEmail] = useState<OzlukEmail | null>(null);
@@ -54,7 +55,7 @@ const Emails: React.FC<EmailsProps> = ({ onRefresh }) => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await emailAPI.getEmails();
+      const data = await emailAPI.getEmails(targetUserUuid);
       setEmails(data);
       if (selectedEmail && data.length > 0) {
         const updated = data.find(
@@ -108,12 +109,15 @@ const Emails: React.FC<EmailsProps> = ({ onRefresh }) => {
     try {
       setIsLoading(true);
       if (isAdding) {
-        await emailAPI.addEmail(form);
+        await emailAPI.addEmail(form, targetUserUuid);
       } else if (selectedEmail) {
-        await emailAPI.updateEmail({
-          ...form,
-          epostaUuid: selectedEmail.epostaUuid,
-        });
+        await emailAPI.updateEmail(
+          {
+            ...form,
+            epostaUuid: selectedEmail.epostaUuid,
+          },
+          targetUserUuid,
+        );
       }
       await loadEmails();
       setIsAdding(false);
@@ -135,7 +139,7 @@ const Emails: React.FC<EmailsProps> = ({ onRefresh }) => {
 
     try {
       setIsLoading(true);
-      await emailAPI.deleteEmail(selectedEmail.epostaUuid);
+      await emailAPI.deleteEmail(selectedEmail.epostaUuid, targetUserUuid);
       await loadEmails();
       setSelectedEmail(null);
       setIsAdding(false);

@@ -10,6 +10,7 @@ type IconMapping = Record<string, ComponentProps<typeof MaterialIcons>["name"]>;
 
 const MAPPING = {
   "house.fill": { type: "material", name: "home" },
+  house: { type: "material", name: "home" },
   "paperplane.fill": { type: "material", name: "send" },
   "chevron.left.forwardslash.chevron.right": { type: "material", name: "code" },
   "chevron.right": { type: "material", name: "chevron-right" },
@@ -24,6 +25,14 @@ const MAPPING = {
   pencil: { type: "material", name: "edit" },
   trash: { type: "material", name: "delete" },
   "arrow.left": { type: "material", name: "arrow-back" },
+  copy: { type: "material", name: "content-copy" },
+  "person.2": { type: "material", name: "people" },
+  person: { type: "material", name: "person" },
+  book: { type: "material", name: "menu-book" },
+  graduationcap: { type: "material", name: "school" },
+  "chart.bar": { type: "material", name: "bar-chart" },
+  gear: { type: "material", name: "settings" },
+  flask: { type: "material", name: "science" },
 } as const;
 
 type IconSymbolName = keyof typeof MAPPING;

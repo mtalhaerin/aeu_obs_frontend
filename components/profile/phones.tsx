@@ -1,25 +1,26 @@
 import React, { useEffect, useState } from "react";
 import {
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import {
-    OzlukTelefon,
-    PhoneAddRequest,
-    phoneAPI,
-    TelefonTipi,
+  OzlukTelefon,
+  PhoneAddRequest,
+  phoneAPI,
+  TelefonTipi,
 } from "../../services/ozluk-api";
 
 interface PhonesProps {
   onRefresh?: () => void;
+  targetUserUuid?: string; // Admin panel için başka kullanıcının verilerini görüntülemek
 }
 
-const Phones: React.FC<PhonesProps> = ({ onRefresh }) => {
+const Phones: React.FC<PhonesProps> = ({ onRefresh, targetUserUuid }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [phones, setPhones] = useState<OzlukTelefon[]>([]);
   const [selectedPhone, setSelectedPhone] = useState<OzlukTelefon | null>(null);
@@ -54,7 +55,7 @@ const Phones: React.FC<PhonesProps> = ({ onRefresh }) => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await phoneAPI.getPhones();
+      const data = await phoneAPI.getPhones(targetUserUuid);
       setPhones(data);
       if (selectedPhone && data.length > 0) {
         const updated = data.find(
@@ -110,12 +111,15 @@ const Phones: React.FC<PhonesProps> = ({ onRefresh }) => {
     try {
       setIsLoading(true);
       if (isAdding) {
-        await phoneAPI.addPhone(form);
+        await phoneAPI.addPhone(form, targetUserUuid);
       } else if (selectedPhone) {
-        await phoneAPI.updatePhone({
-          ...form,
-          telefonUuid: selectedPhone.telefonUuid,
-        });
+        await phoneAPI.updatePhone(
+          {
+            ...form,
+            telefonUuid: selectedPhone.telefonUuid,
+          },
+          targetUserUuid,
+        );
       }
       await loadPhones();
       setIsAdding(false);
@@ -137,7 +141,7 @@ const Phones: React.FC<PhonesProps> = ({ onRefresh }) => {
 
     try {
       setIsLoading(true);
-      await phoneAPI.deletePhone(selectedPhone.telefonUuid);
+      await phoneAPI.deletePhone(selectedPhone.telefonUuid, targetUserUuid);
       await loadPhones();
       setSelectedPhone(null);
       setIsAdding(false);

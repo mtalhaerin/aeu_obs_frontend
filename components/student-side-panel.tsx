@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { IconSymbol } from "./ui/icon-symbol";
 
-export interface AdminMenuItem {
+export interface StudentMenuItem {
   id: string;
   label: string;
   icon?: string;
@@ -18,21 +18,21 @@ export interface AdminMenuItem {
   action?: () => void;
 }
 
-export interface AdminMenuCategory {
+export interface StudentMenuCategory {
   id: string;
   title: string;
   icon?: string;
-  items: AdminMenuItem[];
+  items: StudentMenuItem[];
 }
 
-interface AdminSidePanelProps {
+interface StudentSidePanelProps {
   userName?: string;
   isCollapsed?: boolean;
-  onMenuItemPress?: (item: AdminMenuItem) => void;
+  onMenuItemPress?: (item: StudentMenuItem) => void;
 }
 
-const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
-  userName = "Admin",
+const StudentSidePanel: React.FC<StudentSidePanelProps> = ({
+  userName = "Öğrenci",
   isCollapsed = false,
   onMenuItemPress,
 }) => {
@@ -41,7 +41,7 @@ const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
     "dashboard",
   ]);
 
-  const categories: AdminMenuCategory[] = [
+  const categories: StudentMenuCategory[] = [
     {
       id: "dashboard",
       title: "Ana Sayfa",
@@ -53,99 +53,97 @@ const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
           route: "/dashboard/dashboard",
         },
         {
-          id: "dashboard-stats",
-          label: "İstatistikler",
-          route: "/dashboard/stats",
-        },
-      ],
-    },
-    {
-      id: "users",
-      title: "Kullanıcı İşlemleri",
-      icon: "person.2",
-      items: [
-        {
-          id: "users-management",
-          label: "Kullanıcı Yönetimi",
-          route: "/dashboard/admin/user",
+          id: "dashboard-announcements",
+          label: "Duyurular",
+          route: "/dashboard/announcements",
         },
       ],
     },
     {
       id: "courses",
-      title: "Ders İşlemleri",
+      title: "Dersler",
       icon: "book",
       items: [
         {
-          id: "courses-list",
-          label: "Ders Listesi",
-          route: "/dashboard/courses",
+          id: "courses-enrolled",
+          label: "Aldığım Dersler",
+          route: "/dashboard/student/courses",
         },
         {
-          id: "courses-create",
-          label: "Yeni Ders",
-          route: "/dashboard/courses/create",
+          id: "courses-registration",
+          label: "Ders Kaydı",
+          route: "/dashboard/student/registration",
         },
         {
           id: "courses-schedule",
           label: "Ders Programı",
-          route: "/dashboard/courses/schedule",
+          route: "/dashboard/student/schedule",
         },
       ],
     },
     {
-      id: "students",
-      title: "Öğrenci İşlemleri",
-      icon: "graduationcap",
-      items: [
-        {
-          id: "students-list",
-          label: "Öğrenci Listesi",
-          route: "/dashboard/students",
-        },
-        {
-          id: "students-enrollment",
-          label: "Ders Kaydı",
-          route: "/dashboard/students/enrollment",
-        },
-        {
-          id: "students-grades",
-          label: "Not Girişi",
-          route: "/dashboard/students/grades",
-        },
-      ],
-    },
-    {
-      id: "reports",
-      title: "Raporlar",
+      id: "grades",
+      title: "Notlar",
       icon: "chart.bar",
       items: [
         {
-          id: "reports-academic",
-          label: "Akademik Raporlar",
-          route: "/dashboard/reports/academic",
+          id: "grades-transcript",
+          label: "Transkript",
+          route: "/dashboard/student/transcript",
         },
         {
-          id: "reports-attendance",
-          label: "Devamsızlık Raporları",
-          route: "/dashboard/reports/attendance",
+          id: "grades-semester",
+          label: "Dönem Notları",
+          route: "/dashboard/student/grades",
+        },
+        {
+          id: "grades-gpa",
+          label: "GPA Hesaplama",
+          route: "/dashboard/student/gpa",
         },
       ],
     },
     {
-      id: "settings",
-      title: "Ayarlar",
-      icon: "gear",
+      id: "profile",
+      title: "Profil",
+      icon: "person",
       items: [
         {
-          id: "settings-general",
-          label: "Genel Ayarlar",
-          route: "/dashboard/settings",
+          id: "profile-info",
+          label: "Kişisel Bilgiler",
+          route: "/dashboard/profile",
         },
         {
-          id: "settings-system",
-          label: "Sistem Ayarları",
-          route: "/dashboard/settings/system",
+          id: "profile-documents",
+          label: "Belgelerim",
+          route: "/dashboard/student/documents",
+        },
+        {
+          id: "profile-photo",
+          label: "Fotoğraf Güncelle",
+          route: "/dashboard/student/photo",
+        },
+      ],
+    },
+    {
+      id: "services",
+      title: "Öğrenci Hizmetleri",
+      icon: "graduationcap",
+      items: [
+        {
+          id: "services-petition",
+          label: "Dilekçe",
+          route: "/dashboard/student/petition",
+        },
+        {
+          id: "services-dormitory",
+          label: "Yurt Başvurusu",
+          route: "/dashboard/student/dormitory",
+        },
+        {
+          id: "services-scholarship",
+          label: "Burs Başvurusu",
+          route: "/dashboard/student/scholarship",
         },
       ],
     },
@@ -159,7 +157,7 @@ const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
     );
   };
 
-  const handleMenuItemPress = (item: AdminMenuItem) => {
+  const handleMenuItemPress = (item: StudentMenuItem) => {
     if (onMenuItemPress) {
       onMenuItemPress(item);
     }
@@ -179,7 +177,7 @@ const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Admin Panel</Text>
+        <Text style={styles.headerTitle}>Öğrenci Paneli</Text>
         <Text style={styles.headerSubtitle}>{userName}</Text>
       </View>
 
@@ -203,7 +201,7 @@ const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
                   <IconSymbol
                     name={category.icon}
                     size={16}
-                    color="#666"
+                    color="#5a7ba7"
                     style={styles.categoryIcon}
                   />
                 )}
@@ -263,17 +261,17 @@ const styles = StyleSheet.create({
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: "#e0e0e0",
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#e8f4fd",
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#181818",
+    color: "#1e3a5f",
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 13,
-    color: "#666",
+    color: "#5a7ba7",
   },
   menuContainer: {
     flex: 1,
@@ -287,7 +285,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 12,
     borderRadius: 8,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#f0f7ff",
     marginBottom: 2,
     cursor: Platform.OS === "web" ? "pointer" : undefined,
   },
@@ -298,7 +296,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     fontWeight: "600",
-    color: "#181818",
+    color: "#1e3a5f",
   },
   categoryArrowIcon: {
     justifyContent: "center",
@@ -322,7 +320,7 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#999",
+    backgroundColor: "#4a90e2",
     marginRight: 10,
   },
   menuLabel: {
@@ -335,13 +333,13 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#e0e0e0",
     alignItems: "center",
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#e8f4fd",
   },
   footerText: {
     fontSize: 11,
     color: "#DAA520",
-    fontWeight: "600",
+    fontWeight: "500",
   },
 });
 
-export default AdminSidePanel;
+export default StudentSidePanel;

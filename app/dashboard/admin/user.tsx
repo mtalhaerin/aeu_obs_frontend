@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
+    Clipboard,
     Platform,
     Pressable,
     ScrollView,
@@ -15,7 +16,11 @@ import {
 import AdminSidePanel from "../../../components/admin-side-panel";
 import Loading from "../../../components/loading";
 import NavigationBar from "../../../components/navigation-bar";
+import Addresses from "../../../components/profile/addresses";
+import Emails from "../../../components/profile/emails";
+import Phones from "../../../components/profile/phones";
 import { IconSymbol } from "../../../components/ui/icon-symbol";
+import { Tooltip } from "../../../components/ui/tooltip";
 import { IdentityType } from "../../../constants/identity-types";
 import {
     User,
@@ -27,7 +32,7 @@ import { getCookie } from "../../../utils/cookies";
 import { getIdentityTypeFromToken } from "../../../utils/jwt";
 import { ROUTES } from "../../router";
 
-type ViewMode = "list" | "new" | "edit";
+type ViewMode = "list" | "new" | "edit" | "profile";
 
 // Kullanıcı Tipi Enum
 enum KullaniciTipi {
@@ -143,6 +148,13 @@ const UserManagement: React.FC = () => {
     kurumSicilNo: "",
   });
 
+  // Tooltip state for copy operations
+  const [copyTooltip, setCopyTooltip] = useState<{
+    visible: boolean;
+    text: string;
+    position?: { x: number; y: number };
+  }>({ visible: false, text: "" });
+
   useEffect(() => {
     const t = setTimeout(() => {
       const token = getCookie("accessToken");
@@ -205,16 +217,18 @@ const UserManagement: React.FC = () => {
 
   const handleViewModeChange = (mode: ViewMode, user?: User) => {
     setViewMode(mode);
-    if (mode === "edit" && user) {
+    if ((mode === "edit" || mode === "profile") && user) {
       setEditingUser(user);
-      setFormData({
-        kullaniciTipi: user.kullaniciTipi,
-        ad: user.ad || "",
-        ortaAd: user.ortaAd || "",
-        soyad: user.soyad || "",
-        kurumEposta: user.kurumEposta,
-        kurumSicilNo: user.kurumSicilNo,
-      });
+      if (mode === "edit") {
+        setFormData({
+          kullaniciTipi: user.kullaniciTipi,
+          ad: user.ad || "",
+          ortaAd: user.ortaAd || "",
+          soyad: user.soyad || "",
+          kurumEposta: user.kurumEposta,
+          kurumSicilNo: user.kurumSicilNo,
+        });
+      }
     } else if (mode === "new") {
       setEditingUser(null);
       const defaultPatterns = getDefaultPatterns(KullaniciTipi.OGRENCI);
@@ -321,6 +335,22 @@ const UserManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Copy to clipboard function
+  const handleCopyToClipboard = (text: string, label: string) => {
+    Clipboard.setString(text);
+
+    // Show tooltip
+    setCopyTooltip({
+      visible: true,
+      text: `${label} kopyalandı!`,
+    });
+
+    // Hide tooltip after 2 seconds
+    setTimeout(() => {
+      setCopyTooltip({ visible: false, text: "" });
+    }, 2000);
   };
 
   if (isChecking) {
@@ -467,7 +497,16 @@ const UserManagement: React.FC = () => {
                 onPress={() => handleViewModeChange("edit", user)}
               >
                 <IconSymbol name="pencil" size={14} color="#007AFF" />
-                <Text style={styles.actionButtonText}>Düzenle</Text>
+                <Text style={[styles.actionButtonText, { color: "#007AFF" }]}>
+                  Düzenle
+                </Text>
+              </Pressable>
+              <Pressable
+                style={styles.profileButton}
+                onPress={() => handleViewModeChange("profile", user)}
+              >
+                <IconSymbol name="paperplane.fill" size={14} color="#34C759" />
+                <Text style={styles.profileButtonText}>Özlük</Text>
               </Pressable>
               <Pressable
                 style={styles.deleteButton}
@@ -476,7 +515,9 @@ const UserManagement: React.FC = () => {
                 }}
               >
                 <IconSymbol name="trash" size={14} color="#FF3B30" />
-                <Text style={styles.actionButtonText}>Sil</Text>
+                <Text style={[styles.actionButtonText, { color: "#FF3B30" }]}>
+                  Sil
+                </Text>
               </Pressable>
             </View>
           </View>
@@ -703,6 +744,111 @@ const UserManagement: React.FC = () => {
     </View>
   );
 
+  const renderUserProfile = () => {
+    if (!editingUser) {
+      return (
+        <View style={styles.formContainer}>
+          <Text style={styles.title}>Kullanıcı seçilmedi</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.formContainer}>
+        <View style={styles.formHeader}>
+          <Pressable
+            style={styles.backButton}
+            onPress={() => handleViewModeChange("list")}
+          >
+            <IconSymbol name="arrow.left" size={16} color="#007AFF" />
+            <Text style={styles.backButtonText}>Geri Dön</Text>
+          </Pressable>
+          <Text style={styles.title}>
+            {editingUser.ad || editingUser.kurumEposta} - Özlük Bilgileri
+          </Text>
+        </View>
+
+        <ScrollView
+          style={styles.form}
+          contentContainerStyle={styles.formContent}
+        >
+          <View style={styles.profileSectionsContainer}>
+            <Text style={styles.profileSubtitle}>
+              Kullanıcının adres, telefon ve e-posta bilgilerini yönetin
+            </Text>
+
+            <View style={styles.userInfoBox}>
+              <Text style={styles.userInfoTitle}>Kullanıcı Bilgileri</Text>
+
+              <View style={styles.userInfoRow}>
+                <Text style={styles.userInfoLabel}>Ad Soyad:</Text>
+                <Text style={styles.userInfoValue}>
+                  {`${editingUser.ad || ""} ${editingUser.ortaAd || ""} ${editingUser.soyad || ""}`.trim() ||
+                    "-"}
+                </Text>
+              </View>
+
+              <View style={styles.userInfoRow}>
+                <Text style={styles.userInfoLabel}>E-posta:</Text>
+                <View style={styles.copyableRow}>
+                  <Text style={styles.userInfoValue}>
+                    {editingUser.kurumEposta}
+                  </Text>
+                  <Pressable
+                    style={styles.copyButton}
+                    onPress={() =>
+                      handleCopyToClipboard(editingUser.kurumEposta, "E-posta")
+                    }
+                  >
+                    <IconSymbol name="copy" size={12} color="#007AFF" />
+                  </Pressable>
+                </View>
+              </View>
+
+              <View style={styles.userInfoRow}>
+                <Text style={styles.userInfoLabel}>Sicil No:</Text>
+                <View style={styles.copyableRow}>
+                  <Text style={styles.userInfoValue}>
+                    {editingUser.kurumSicilNo}
+                  </Text>
+                  <Pressable
+                    style={styles.copyButton}
+                    onPress={() =>
+                      handleCopyToClipboard(
+                        editingUser.kurumSicilNo,
+                        "Sicil No",
+                      )
+                    }
+                  >
+                    <IconSymbol name="copy" size={12} color="#007AFF" />
+                  </Pressable>
+                </View>
+              </View>
+
+              <View style={styles.userInfoRow}>
+                <Text style={styles.userInfoLabel}>Tür:</Text>
+                <Text style={styles.userInfoValue}>
+                  {getUserTypeLabel(editingUser.kullaniciTipi)}
+                </Text>
+              </View>
+            </View>
+
+            <Addresses targetUserUuid={editingUser.kullaniciUuid} />
+            <Phones targetUserUuid={editingUser.kullaniciUuid} />
+            <Emails targetUserUuid={editingUser.kullaniciUuid} />
+          </View>
+        </ScrollView>
+
+        {/* Copy Tooltip */}
+        <Tooltip
+          visible={copyTooltip.visible}
+          text={copyTooltip.text}
+          position="top"
+        />
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <NavigationBar userName="Kullanıcı" />
@@ -733,7 +879,11 @@ const UserManagement: React.FC = () => {
         )}
 
         <View style={styles.content}>
-          {viewMode === "list" ? renderUserList() : renderUserForm()}
+          {viewMode === "list"
+            ? renderUserList()
+            : viewMode === "profile"
+              ? renderUserProfile()
+              : renderUserForm()}
         </View>
       </View>
     </View>
@@ -753,6 +903,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 20,
+    marginHorizontal: "2%",
   },
   // Search and Filter styles
   searchContainer: {
@@ -796,13 +947,20 @@ const styles = StyleSheet.create({
   smallPickerContainer: {
     borderWidth: 1,
     borderColor: "#ddd",
-    borderRadius: 6,
+    borderRadius: 12,
     backgroundColor: "#fff",
     height: 40,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   smallPicker: {
     height: 40,
     fontSize: 14,
+    color: "#333",
+    fontWeight: "500",
   },
   searchButton: {
     flexDirection: "row",
@@ -907,17 +1065,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#495057",
     textAlignVertical: "center",
+    fontWeight: "500",
   },
   tableCellActions: {
     flexDirection: "row",
     gap: 8,
     alignItems: "center",
   },
-  colName: { flex: 1.9, paddingHorizontal: 12 },
-  colEmail: { flex: 1.9, paddingHorizontal: 8 },
-  colSicil: { flex: 0.95, paddingHorizontal: 8 },
-  colType: { flex: 0.76, paddingHorizontal: 8 },
-  colActions: { flex: 1.43, paddingHorizontal: 8 },
+  colName: { flex: 1.7, paddingHorizontal: 12 },
+  colEmail: { flex: 1.7, paddingHorizontal: 8 },
+  colSicil: { flex: 0.9, paddingHorizontal: 8 },
+  colType: { flex: 0.7, paddingHorizontal: 8 },
+  colActions: { flex: 2.0, paddingHorizontal: 8 },
   editButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -925,6 +1084,19 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: "#e3f2fd",
     gap: 4,
+  },
+  profileButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 6,
+    borderRadius: 4,
+    backgroundColor: "#e8f5e8",
+    gap: 4,
+  },
+  profileButtonText: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#34C759",
   },
   deleteButton: {
     flexDirection: "row",
@@ -1041,14 +1213,21 @@ const styles = StyleSheet.create({
   pickerContainer: {
     borderWidth: 1,
     borderColor: "#ddd",
-    borderRadius: 8,
+    borderRadius: 12,
     backgroundColor: "#fff",
     minHeight: 48,
     justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
   },
   picker: {
     height: 48,
     fontSize: 16,
+    color: "#333",
+    fontWeight: "500",
   },
   errorInput: {
     borderColor: "#FF3B30",
@@ -1099,6 +1278,76 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  // Profile styles
+  profileSectionsContainer: {
+    maxWidth: "90%",
+    alignSelf: "center",
+    width: "100%",
+  },
+  profileSubtitle: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 24,
+  },
+  userInfoBox: {
+    backgroundColor: "#f8f9fa",
+    padding: 20,
+    borderRadius: 12,
+    marginBottom: 24,
+    borderLeft: "4px solid #007AFF",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  userInfoTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#333",
+    marginBottom: 16,
+  },
+  userInfoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+    paddingVertical: 2,
+  },
+  userInfoLabel: {
+    fontSize: 14,
+    color: "#666",
+    fontWeight: "500",
+    minWidth: 80,
+    marginRight: 12,
+  },
+  userInfoValue: {
+    fontSize: 14,
+    color: "#333",
+    fontWeight: "600",
+  },
+  copyableRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  copyButton: {
+    padding: 4,
+    borderRadius: 4,
+    backgroundColor: "#e3f2fd",
+    borderWidth: 1,
+    borderColor: "#bbdefb",
+    minWidth: 24,
+    minHeight: 24,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  userInfoText: {
+    fontSize: 14,
+    color: "#484848",
+    marginBottom: 4,
+    lineHeight: 20,
   },
   // Toggle button styles (from other components)
   toggleButton: {

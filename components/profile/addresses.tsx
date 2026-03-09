@@ -16,9 +16,10 @@ import {
 
 interface AddressesProps {
   onRefresh?: () => void;
+  targetUserUuid?: string; // Admin panel için başka kullanıcının verilerini görüntülemek
 }
 
-const Addresses: React.FC<AddressesProps> = ({ onRefresh }) => {
+const Addresses: React.FC<AddressesProps> = ({ onRefresh, targetUserUuid }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [addresses, setAddresses] = useState<OzlukAdres[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<OzlukAdres | null>(
@@ -44,7 +45,7 @@ const Addresses: React.FC<AddressesProps> = ({ onRefresh }) => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await addressAPI.getAddresses();
+      const data = await addressAPI.getAddresses(targetUserUuid);
       setAddresses(data);
       if (selectedAddress && data.length > 0) {
         const updated = data.find(
@@ -100,12 +101,15 @@ const Addresses: React.FC<AddressesProps> = ({ onRefresh }) => {
     try {
       setIsLoading(true);
       if (isAdding) {
-        await addressAPI.addAddress(form);
+        await addressAPI.addAddress(form, targetUserUuid);
       } else if (selectedAddress) {
-        await addressAPI.updateAddress({
-          ...form,
-          adresUuid: selectedAddress.adresUuid,
-        });
+        await addressAPI.updateAddress(
+          {
+            ...form,
+            adresUuid: selectedAddress.adresUuid,
+          },
+          targetUserUuid,
+        );
       }
       await loadAddresses();
       setIsAdding(false);
@@ -126,7 +130,7 @@ const Addresses: React.FC<AddressesProps> = ({ onRefresh }) => {
 
     try {
       setIsLoading(true);
-      await addressAPI.deleteAddress(selectedAddress.adresUuid);
+      await addressAPI.deleteAddress(selectedAddress.adresUuid, targetUserUuid);
       await loadAddresses();
       setSelectedAddress(null);
       setIsAdding(false);
