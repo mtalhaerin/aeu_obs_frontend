@@ -193,8 +193,17 @@ const Emails: React.FC<EmailsProps> = ({ onRefresh, targetUserUuid }) => {
                     <Text style={styles.dropdownItemText}>
                       {email.epostaAdresi} (
                       {getEmailTypeLabel(email.epostaTipi)})
-                      {email.oncelikli && " ⭐"}
                     </Text>
+                    {email.oncelikli && (
+                      <View style={styles.priorityBadge}>
+                        <IconSymbol
+                          name="checkmark.circle.fill"
+                          size={12}
+                          color="#34C759"
+                        />
+                        <Text style={styles.priorityBadgeText}>Öncelikli</Text>
+                      </View>
+                    )}
                   </Pressable>
                 ))}
               </ScrollView>
@@ -366,7 +375,25 @@ const styles = StyleSheet.create({
     padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     cursor: Platform.OS === "web" ? "pointer" : undefined,
+  },
+  priorityBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#e8f5e9",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  priorityBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#2e7d32",
+    textTransform: "uppercase",
   },
   dropdownItemText: {
     fontSize: 13,
@@ -434,8 +461,10 @@ const styles = StyleSheet.create({
   checkbox: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 10,
-    marginBottom: 12,
+    alignSelf: "flex-start",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    marginBottom: 16,
     borderRadius: 6,
     borderWidth: 1,
     borderColor: "#ddd",
