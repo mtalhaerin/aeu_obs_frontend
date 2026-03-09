@@ -13,13 +13,14 @@ import {
     TextInput,
     View,
 } from "react-native";
-import AdminSidePanel from "../../../components/admin-side-panel";
-import Loading from "../../../components/loading";
-import NavigationBar from "../../../components/navigation-bar";
+import NavigationBar from "../../../components/panels/navigation-panels/navigation-bar";
+import AdminSidePanel from "../../../components/panels/side-panels/admin-side-panel";
 import Addresses from "../../../components/profile/addresses";
 import Emails from "../../../components/profile/emails";
 import Phones from "../../../components/profile/phones";
+import { UserTexts } from "../../../components/texts/user-texts";
 import { IconSymbol } from "../../../components/ui/icon-symbol";
+import Loading from "../../../components/ui/loading";
 import { Tooltip } from "../../../components/ui/tooltip";
 import { IdentityType } from "../../../constants/identity-types";
 import {
@@ -44,13 +45,13 @@ enum KullaniciTipi {
 const getUserTypeLabel = (type: KullaniciTipi): string => {
   switch (type) {
     case KullaniciTipi.OGRENCI:
-      return "Öğrenci";
+      return UserTexts.userTypes.student;
     case KullaniciTipi.AKADEMISYEN:
-      return "Akademisyen";
+      return UserTexts.userTypes.academic;
     case KullaniciTipi.PERSONEL:
-      return "Personel";
+      return UserTexts.userTypes.personnel;
     default:
-      return "Bilinmeyen";
+      return UserTexts.userTypes.unknown;
   }
 };
 
@@ -58,23 +59,23 @@ const getDefaultPatterns = (type: KullaniciTipi) => {
   switch (type) {
     case KullaniciTipi.OGRENCI:
       return {
-        kurumSicilNo: "222511000",
-        kurumEposta: "ornek.ornek@ahievran.edu.tr",
+        kurumSicilNo: UserTexts.defaults.studentSicil,
+        kurumEposta: UserTexts.defaults.defaultEmail,
       };
     case KullaniciTipi.AKADEMISYEN:
       return {
-        kurumSicilNo: "AKD003",
-        kurumEposta: "ornek.ornek@ahievran.edu.tr",
+        kurumSicilNo: UserTexts.defaults.academicSicil,
+        kurumEposta: UserTexts.defaults.defaultEmail,
       };
     case KullaniciTipi.PERSONEL:
       return {
-        kurumSicilNo: "PRS002",
-        kurumEposta: "ornek.ornek@ahievran.edu.tr",
+        kurumSicilNo: UserTexts.defaults.personnelSicil,
+        kurumEposta: UserTexts.defaults.defaultEmail,
       };
     default:
       return {
-        kurumSicilNo: "222511000",
-        kurumEposta: "ornek.ornek@ahievran.edu.tr",
+        kurumSicilNo: UserTexts.defaults.studentSicil,
+        kurumEposta: UserTexts.defaults.defaultEmail,
       };
   }
 };
@@ -85,16 +86,16 @@ const validateForm = (formData: any) => {
 
   if (
     !formData.kurumEposta ||
-    formData.kurumEposta === "ornek.ornek@ahievran.edu.tr"
+    formData.kurumEposta === UserTexts.defaults.defaultEmail
   ) {
     errors.kurumEposta = true;
   }
 
   if (
     !formData.kurumSicilNo ||
-    formData.kurumSicilNo === "222511000" ||
-    formData.kurumSicilNo === "AKD003" ||
-    formData.kurumSicilNo === "PRS002"
+    formData.kurumSicilNo === UserTexts.defaults.studentSicil ||
+    formData.kurumSicilNo === UserTexts.defaults.academicSicil ||
+    formData.kurumSicilNo === UserTexts.defaults.personnelSicil
   ) {
     errors.kurumSicilNo = true;
   }
@@ -129,8 +130,8 @@ const UserManagement: React.FC = () => {
     ad: "",
     ortaAd: "",
     soyad: "",
-    kurumEposta: "ornek.ornek@ahievran.edu.tr",
-    kurumSicilNo: "222511000",
+    kurumEposta: UserTexts.defaults.defaultEmail,
+    kurumSicilNo: UserTexts.defaults.studentSicil,
   });
 
   // Pagination states
@@ -153,6 +154,12 @@ const UserManagement: React.FC = () => {
     visible: boolean;
     text: string;
     position?: { x: number; y: number };
+  }>({ visible: false, text: "" });
+
+  // Tooltip state for mailto operations
+  const [mailtoTooltip, setMailtoTooltip] = useState<{
+    visible: boolean;
+    text: string;
   }>({ visible: false, text: "" });
 
   useEffect(() => {
@@ -196,8 +203,8 @@ const UserManagement: React.FC = () => {
     } catch (error: any) {
       console.error("Load users error:", error);
       Alert.alert(
-        "Hata",
-        error.message || "Kullanıcılar yüklenirken hata oluştu.",
+        UserTexts.errors.general,
+        error.message || UserTexts.errors.loadUsersError,
       );
     } finally {
       setLoading(false);
@@ -213,6 +220,20 @@ const UserManagement: React.FC = () => {
     setCurrentPage(1);
     setIsLastPage(false);
     loadUsers(1, searchFilters);
+  };
+
+  const handleClearFilters = () => {
+    const defaultFilters = {
+      kullaniciTipi: undefined as number | undefined,
+      ad: "",
+      soyad: "",
+      kurumEposta: "",
+      kurumSicilNo: "",
+    };
+    setSearchFilters(defaultFilters);
+    setCurrentPage(1);
+    setIsLastPage(false);
+    loadUsers(1, defaultFilters);
   };
 
   const handleViewModeChange = (mode: ViewMode, user?: User) => {
@@ -251,7 +272,7 @@ const UserManagement: React.FC = () => {
 
   const handleCreateUser = async () => {
     if (!isFormValid()) {
-      Alert.alert("Hata", "Lütfen tüm alanları doğru şekilde doldurunuz.");
+      Alert.alert(UserTexts.errors.general, UserTexts.errors.fillAllFields);
       return;
     }
 
@@ -267,13 +288,13 @@ const UserManagement: React.FC = () => {
       };
 
       await userAPI.createUser(createData);
-      Alert.alert("Başarılı", "Kullanıcı başarıyla oluşturuldu.");
+      Alert.alert("Başarılı", UserTexts.success.userCreated);
       setViewMode("list");
       loadUsers();
     } catch (error: any) {
       Alert.alert(
-        "Hata",
-        error.message || "Kullanıcı oluşturulurken hata oluştu.",
+        UserTexts.errors.general,
+        error.message || UserTexts.errors.createUserError,
       );
     } finally {
       setLoading(false);
@@ -282,12 +303,15 @@ const UserManagement: React.FC = () => {
 
   const handleUpdateUser = async () => {
     if (!isFormValid()) {
-      Alert.alert("Hata", "Lütfen tüm alanları doğru şekilde doldurunuz.");
+      Alert.alert(UserTexts.errors.general, UserTexts.errors.fillAllFields);
       return;
     }
 
     if (!editingUser) {
-      Alert.alert("Hata", "Düzenlenecek kullanıcı bulunamadı.");
+      Alert.alert(
+        UserTexts.errors.general,
+        UserTexts.errors.userNotFoundForEdit,
+      );
       return;
     }
 
@@ -304,13 +328,13 @@ const UserManagement: React.FC = () => {
       };
 
       await userAPI.updateUser(updateData);
-      Alert.alert("Başarılı", "Kullanıcı başarıyla güncellendi.");
+      Alert.alert("Başarılı", UserTexts.success.userUpdated);
       setViewMode("list");
       loadUsers();
     } catch (error: any) {
       Alert.alert(
-        "Hata",
-        error.message || "Kullanıcı güncellenirken hata oluştu.",
+        UserTexts.errors.general,
+        error.message || UserTexts.errors.updateUserError,
       );
     } finally {
       setLoading(false);
@@ -329,9 +353,12 @@ const UserManagement: React.FC = () => {
       // Liste güncelleme
       await loadUsers(currentPage, searchFilters);
 
-      Alert.alert("Başarılı", "Kullanıcı silindi");
+      Alert.alert("Başarılı", UserTexts.success.userDeleted);
     } catch (error: any) {
-      Alert.alert("Hata", error.message || "Silme işlemi başarısız");
+      Alert.alert(
+        UserTexts.errors.general,
+        error.message || UserTexts.errors.deleteUserError,
+      );
     } finally {
       setLoading(false);
     }
@@ -344,7 +371,7 @@ const UserManagement: React.FC = () => {
     // Show tooltip
     setCopyTooltip({
       visible: true,
-      text: `${label} kopyalandı!`,
+      text: UserTexts.copy(label),
     });
 
     // Hide tooltip after 2 seconds
@@ -353,10 +380,33 @@ const UserManagement: React.FC = () => {
     }, 2000);
   };
 
+  // Handle mailto function
+  const handleMailTo = (email: string) => {
+    if (Platform.OS === "web") {
+      window.open(`mailto:${email}`, "_self");
+    } else {
+      // For mobile platforms, you might want to use Linking
+      // Linking.openURL(`mailto:${email}`);
+      console.log(`Opening mailto for: ${email}`);
+    }
+  };
+
+  // Handle mailto tooltip
+  const handleMailtoTooltipShow = () => {
+    setMailtoTooltip({
+      visible: true,
+      text: UserTexts.sendMail,
+    });
+  };
+
+  const handleMailtoTooltipHide = () => {
+    setMailtoTooltip({ visible: false, text: "" });
+  };
+
   if (isChecking) {
     return (
       <View style={styles.container}>
-        <Loading text="Yükleniyor..." />
+        <Loading text={UserTexts.messages.loading} />
       </View>
     );
   }
@@ -365,10 +415,12 @@ const UserManagement: React.FC = () => {
 
   const renderSearchFilters = () => (
     <View style={styles.searchContainer}>
-      <Text style={styles.searchTitle}>Arama Filtreleri</Text>
+      <Text style={styles.searchTitle}>{UserTexts.search.filtersTitle}</Text>
       <View style={styles.filterRow}>
         <View style={styles.filterItem}>
-          <Text style={styles.filterLabel}>Kullanıcı Tipi</Text>
+          <Text style={styles.filterLabel}>
+            {UserTexts.labels.userType.replace(" *", "")}
+          </Text>
           <View style={styles.smallPickerContainer}>
             <Picker
               selectedValue={searchFilters.kullaniciTipi}
@@ -380,13 +432,19 @@ const UserManagement: React.FC = () => {
                 }))
               }
             >
-              <Picker.Item label="Tümü" value={-1} />
-              <Picker.Item label="Öğrenci" value={KullaniciTipi.OGRENCI} />
+              <Picker.Item label={UserTexts.search.allTypes} value={-1} />
               <Picker.Item
-                label="Akademisyen"
+                label={UserTexts.userTypes.student}
+                value={KullaniciTipi.OGRENCI}
+              />
+              <Picker.Item
+                label={UserTexts.userTypes.academic}
                 value={KullaniciTipi.AKADEMISYEN}
               />
-              <Picker.Item label="Personel" value={KullaniciTipi.PERSONEL} />
+              <Picker.Item
+                label={UserTexts.userTypes.personnel}
+                value={KullaniciTipi.PERSONEL}
+              />
             </Picker>
           </View>
         </View>
@@ -429,7 +487,14 @@ const UserManagement: React.FC = () => {
 
         <Pressable style={styles.searchButton} onPress={handleSearch}>
           <IconSymbol name="magnifyingglass" size={16} color="#fff" />
-          <Text style={styles.searchButtonText}>Ara</Text>
+          <Text style={styles.searchButtonText}>
+            {UserTexts.search.searchButton}
+          </Text>
+        </Pressable>
+
+        <Pressable style={styles.clearButton} onPress={handleClearFilters}>
+          <IconSymbol name="xmark.circle" size={16} color="#666" />
+          <Text style={styles.clearButtonText}>Temizle</Text>
         </Pressable>
       </View>
     </View>
@@ -438,18 +503,22 @@ const UserManagement: React.FC = () => {
   const renderUserList = () => (
     <View style={styles.listContainer}>
       <View style={styles.listHeader}>
-        <Text style={styles.title}>Kullanıcı Yönetimi</Text>
+        <Text style={styles.title}>{UserTexts.pageTitle}</Text>
         <View style={styles.headerButtons}>
           <Pressable style={styles.refreshButton} onPress={handleRefresh}>
             <IconSymbol name="arrow.clockwise" size={16} color="#666" />
-            <Text style={styles.refreshButtonText}>Yenile</Text>
+            <Text style={styles.refreshButtonText}>
+              {UserTexts.search.refreshButton}
+            </Text>
           </Pressable>
           <Pressable
             style={styles.addButton}
             onPress={() => handleViewModeChange("new")}
           >
             <IconSymbol name="plus" size={16} color="#fff" />
-            <Text style={styles.addButtonText}>Yeni Kullanıcı</Text>
+            <Text style={styles.addButtonText}>
+              {UserTexts.search.addButton}
+            </Text>
           </Pressable>
         </View>
       </View>
@@ -462,14 +531,20 @@ const UserManagement: React.FC = () => {
 
       <ScrollView style={styles.tableContainer}>
         <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeaderText, styles.colName]}>Ad Soyad</Text>
-          <Text style={[styles.tableHeaderText, styles.colEmail]}>E-posta</Text>
-          <Text style={[styles.tableHeaderText, styles.colSicil]}>
-            Sicil No
+          <Text style={[styles.tableHeaderText, styles.colName]}>
+            {UserTexts.table.fullName}
           </Text>
-          <Text style={[styles.tableHeaderText, styles.colType]}>Tür</Text>
+          <Text style={[styles.tableHeaderText, styles.colEmail]}>
+            {UserTexts.table.email}
+          </Text>
+          <Text style={[styles.tableHeaderText, styles.colSicil]}>
+            {UserTexts.table.sicil}
+          </Text>
+          <Text style={[styles.tableHeaderText, styles.colType]}>
+            {UserTexts.table.type}
+          </Text>
           <Text style={[styles.tableHeaderText, styles.colActions]}>
-            İşlemler
+            {UserTexts.table.actions}
           </Text>
         </View>
 
@@ -482,12 +557,58 @@ const UserManagement: React.FC = () => {
               {`${user.ad || ""} ${user.ortaAd || ""} ${user.soyad || ""}`.trim() ||
                 "-"}
             </Text>
-            <Text style={[styles.tableCell, styles.colEmail]}>
-              {user.kurumEposta}
-            </Text>
-            <Text style={[styles.tableCell, styles.colSicil]}>
-              {user.kurumSicilNo}
-            </Text>
+            <View
+              style={[
+                styles.tableCell,
+                styles.colEmail,
+                styles.emailCellContainer,
+              ]}
+            >
+              <Text style={styles.emailText}>{user.kurumEposta}</Text>
+              <View style={styles.emailActions}>
+                <Pressable
+                  style={styles.emailActionButton}
+                  onPress={() => handleMailTo(user.kurumEposta)}
+                  onPressIn={handleMailtoTooltipShow}
+                  onPressOut={handleMailtoTooltipHide}
+                  onMouseEnter={handleMailtoTooltipShow}
+                  onMouseLeave={handleMailtoTooltipHide}
+                >
+                  <IconSymbol name="envelope" size={12} color="#34C759" />
+                </Pressable>
+                <Pressable
+                  style={styles.emailActionButton}
+                  onPress={() =>
+                    handleCopyToClipboard(
+                      user.kurumEposta,
+                      UserTexts.labels.email.replace(":", ""),
+                    )
+                  }
+                >
+                  <IconSymbol name="copy" size={12} color="#007AFF" />
+                </Pressable>
+              </View>
+            </View>
+            <View
+              style={[
+                styles.tableCell,
+                styles.colSicil,
+                styles.sicilCellContainer,
+              ]}
+            >
+              <Text style={styles.sicilText}>{user.kurumSicilNo}</Text>
+              <Pressable
+                style={styles.sicilActionButton}
+                onPress={() =>
+                  handleCopyToClipboard(
+                    user.kurumSicilNo,
+                    UserTexts.labels.sicil.replace(":", ""),
+                  )
+                }
+              >
+                <IconSymbol name="copy" size={12} color="#007AFF" />
+              </Pressable>
+            </View>
             <Text style={[styles.tableCell, styles.colType]}>
               {getUserTypeLabel(user.kullaniciTipi)}
             </Text>
@@ -498,7 +619,7 @@ const UserManagement: React.FC = () => {
               >
                 <IconSymbol name="pencil" size={14} color="#007AFF" />
                 <Text style={[styles.actionButtonText, { color: "#007AFF" }]}>
-                  Düzenle
+                  {UserTexts.actions.edit}
                 </Text>
               </Pressable>
               <Pressable
@@ -506,7 +627,9 @@ const UserManagement: React.FC = () => {
                 onPress={() => handleViewModeChange("profile", user)}
               >
                 <IconSymbol name="paperplane.fill" size={14} color="#34C759" />
-                <Text style={styles.profileButtonText}>Özlük</Text>
+                <Text style={styles.profileButtonText}>
+                  {UserTexts.actions.profile}
+                </Text>
               </Pressable>
               <Pressable
                 style={styles.deleteButton}
@@ -516,7 +639,7 @@ const UserManagement: React.FC = () => {
               >
                 <IconSymbol name="trash" size={14} color="#FF3B30" />
                 <Text style={[styles.actionButtonText, { color: "#FF3B30" }]}>
-                  Sil
+                  {UserTexts.actions.delete}
                 </Text>
               </Pressable>
             </View>
@@ -525,14 +648,14 @@ const UserManagement: React.FC = () => {
 
         {users.length === 0 && !loading && (
           <View style={styles.noDataContainer}>
-            <Text style={styles.noDataText}>Kullanıcı bulunamadı</Text>
+            <Text style={styles.noDataText}>{UserTexts.messages.noData}</Text>
           </View>
         )}
       </ScrollView>
 
       <View style={styles.pagination}>
         <Text style={styles.paginationText}>
-          Toplam {totalUsers} kullanıcı - Sayfa {currentPage}
+          {UserTexts.messages.totalUsers(totalUsers, currentPage)}
           {totalUsers > 0 && ` / ${Math.ceil(totalUsers / pageSize) || 1}`}
         </Text>
         <View style={styles.paginationButtons}>
@@ -550,7 +673,7 @@ const UserManagement: React.FC = () => {
                 currentPage <= 1 && styles.disabledButtonText,
               ]}
             >
-              Önceki
+              {UserTexts.actions.previous}
             </Text>
           </Pressable>
 
@@ -567,7 +690,7 @@ const UserManagement: React.FC = () => {
                 isLastPage && styles.disabledButtonText,
               ]}
             >
-              Sonraki
+              {UserTexts.actions.next}
             </Text>
           </Pressable>
         </View>
@@ -583,10 +706,14 @@ const UserManagement: React.FC = () => {
           onPress={() => handleViewModeChange("list")}
         >
           <IconSymbol name="arrow.left" size={16} color="#007AFF" />
-          <Text style={styles.backButtonText}>Geri Dön</Text>
+          <Text style={styles.backButtonText}>
+            {UserTexts.search.backButton}
+          </Text>
         </Pressable>
         <Text style={styles.title}>
-          {viewMode === "new" ? "Yeni Kullanıcı" : "Kullanıcı Düzenle"}
+          {viewMode === "new"
+            ? UserTexts.newUserTitle
+            : UserTexts.editUserTitle}
         </Text>
       </View>
 
@@ -596,7 +723,7 @@ const UserManagement: React.FC = () => {
       >
         <View style={styles.formGrid}>
           <View style={styles.formRow}>
-            <Text style={styles.label}>Kullanıcı Tipi *</Text>
+            <Text style={styles.label}>{UserTexts.labels.userType}</Text>
             <View
               style={[
                 styles.pickerContainer,
@@ -716,7 +843,9 @@ const UserManagement: React.FC = () => {
             style={styles.cancelButton}
             onPress={() => handleViewModeChange("list")}
           >
-            <Text style={styles.cancelButtonText}>İptal</Text>
+            <Text style={styles.cancelButtonText}>
+              {UserTexts.actions.cancel}
+            </Text>
           </Pressable>
           <Pressable
             style={[
@@ -735,7 +864,9 @@ const UserManagement: React.FC = () => {
                   (!isFormValid() || loading) && styles.disabledButtonText,
                 ]}
               >
-                {viewMode === "new" ? "Oluştur" : "Güncelle"}
+                {viewMode === "new"
+                  ? UserTexts.actions.create
+                  : UserTexts.actions.update}
               </Text>
             )}
           </Pressable>
@@ -794,6 +925,16 @@ const UserManagement: React.FC = () => {
                   <Text style={styles.userInfoValue}>
                     {editingUser.kurumEposta}
                   </Text>
+                  <Pressable
+                    style={styles.emailActionButton}
+                    onPress={() => handleMailTo(editingUser.kurumEposta)}
+                    onPressIn={handleMailtoTooltipShow}
+                    onPressOut={handleMailtoTooltipHide}
+                    onMouseEnter={handleMailtoTooltipShow}
+                    onMouseLeave={handleMailtoTooltipHide}
+                  >
+                    <IconSymbol name="envelope" size={12} color="#34C759" />
+                  </Pressable>
                   <Pressable
                     style={styles.copyButton}
                     onPress={() =>
@@ -886,6 +1027,20 @@ const UserManagement: React.FC = () => {
               : renderUserForm()}
         </View>
       </View>
+
+      {/* Global Copy Tooltip */}
+      <Tooltip
+        visible={copyTooltip.visible}
+        text={copyTooltip.text}
+        position="top"
+      />
+
+      {/* Global Mailto Tooltip */}
+      <Tooltip
+        visible={mailtoTooltip.visible}
+        text={mailtoTooltip.text}
+        position="top"
+      />
     </View>
   );
 };
@@ -894,6 +1049,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    userSelect: "none", // Prevent text selection globally
   },
   mainContent: {
     flex: 1,
@@ -971,6 +1127,23 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     gap: 8,
     height: 40,
+  },
+  clearButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f0f0f0",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+    gap: 8,
+    height: 40,
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+  clearButtonText: {
+    color: "#666",
+    fontSize: 14,
+    fontWeight: "600",
   },
   searchButtonText: {
     color: "#fff",
@@ -1374,6 +1547,54 @@ const styles = StyleSheet.create({
   },
   toggleButtonCollapsed: {
     left: 12,
+  },
+  // Email table cell styles
+  emailCellContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  emailText: {
+    fontSize: 14,
+    color: "#495057",
+    fontWeight: "500",
+  },
+  emailActions: {
+    flexDirection: "row",
+    gap: 4,
+  },
+  emailActionButton: {
+    padding: 3,
+    borderRadius: 3,
+    backgroundColor: "#f8f9fa",
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+    minWidth: 20,
+    minHeight: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  // Sicil table cell styles
+  sicilCellContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  sicilText: {
+    fontSize: 14,
+    color: "#495057",
+    fontWeight: "500",
+  },
+  sicilActionButton: {
+    padding: 3,
+    borderRadius: 3,
+    backgroundColor: "#f8f9fa",
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+    minWidth: 20,
+    minHeight: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

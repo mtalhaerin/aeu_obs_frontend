@@ -1,14 +1,15 @@
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import appConfig from "../../app.json";
-import AcademicSidePanel from "../../components/academic-side-panel";
-import AdminSidePanel from "../../components/admin-side-panel";
-import Loading from "../../components/loading";
-import NavigationBar from "../../components/navigation-bar";
-import StudentSidePanel from "../../components/student-side-panel";
+import NavigationBar from "../../components/panels/navigation-panels/navigation-bar";
+import AcademicSidePanel from "../../components/panels/side-panels/academic-side-panel";
+import AdminSidePanel from "../../components/panels/side-panels/admin-side-panel";
+import StudentSidePanel from "../../components/panels/side-panels/student-side-panel";
+import { DashboardTexts } from "../../components/texts/dashboard-texts";
 import { IconSymbol } from "../../components/ui/icon-symbol";
+import Loading from "../../components/ui/loading";
 import { IdentityType } from "../../constants/identity-types";
+import ApiConfig from "../../utils/api-config";
 import { getCookie, setCookie } from "../../utils/cookies";
 import { getIdentityTypeFromToken } from "../../utils/jwt";
 import { ROUTES } from "../router";
@@ -21,12 +22,6 @@ const Dashboard: React.FC = () => {
   const [identityType, setIdentityType] = useState<IdentityType | null>(null);
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
 
-  // Get API base URL from app.json
-  const API_BASE_URL =
-    appConfig?.expo?.apiBaseUrl || "http://localhost:5249/api";
-  const COOKIE_EXPIRATION_MINUTES =
-    appConfig?.expo?.cookieExpirationMinutes || 60;
-
   // Token refresh function
   const refreshToken = async () => {
     try {
@@ -36,7 +31,7 @@ const Dashboard: React.FC = () => {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+      const response = await fetch(`${ApiConfig.baseUrl}/auth/refresh`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -51,17 +46,17 @@ const Dashboard: React.FC = () => {
           setCookie(
             "accessToken",
             data.data.accessToken,
-            COOKIE_EXPIRATION_MINUTES,
+            ApiConfig.cookieExpirationMinutes,
           );
-          console.log("Token refreshed successfully");
+          console.log(DashboardTexts.tokenRefreshSuccess);
         }
       } else {
         // Refresh failed, redirect to login
-        console.log("Token refresh failed, redirecting to login");
+        console.log(DashboardTexts.tokenRefreshFailed);
         router.replace(ROUTES.LOGIN as any);
       }
     } catch (error) {
-      console.error("Token refresh error:", error);
+      console.error(DashboardTexts.tokenRefreshError, error);
       // On error, redirect to login
       router.replace(ROUTES.LOGIN as any);
     }
@@ -102,7 +97,7 @@ const Dashboard: React.FC = () => {
   if (isChecking) {
     return (
       <View style={styles.container}>
-        <Loading text="Yükleniyor..." />
+        <Loading text={DashboardTexts.loading} />
       </View>
     );
   }
@@ -159,8 +154,8 @@ const Dashboard: React.FC = () => {
         )}
 
         <View style={styles.content}>
-          <Text style={styles.title}>Dashboard</Text>
-          <Text style={styles.subtitle}>Hoş geldiniz!</Text>
+          <Text style={styles.title}>{DashboardTexts.welcome}</Text>
+          <Text style={styles.subtitle}>{DashboardTexts.selectAction}</Text>
           {identityType && (
             <Text style={styles.userType}>Kullanıcı Türü: {identityType}</Text>
           )}
@@ -174,6 +169,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    userSelect: "none",
   },
   mainContent: {
     flex: 1,
@@ -185,6 +181,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
+    marginHorizontal: "1%",
   },
   title: {
     fontSize: 32,

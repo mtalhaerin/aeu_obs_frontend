@@ -1,4 +1,4 @@
-export class RouterTexts {
-  static publicScreen = 'Public Screen (No Authorization)';
-  static privateScreen = 'Private Screen (Authorized)';
-}
+export const RouterTexts = {
+  publicScreen: "Public Screen (No Authorization)",
+  privateScreen: "Private Screen (Authorized)",
+} as const;

@@ -1,13 +1,10 @@
-import Constants from "expo-constants";
+import ApiConfig from "../utils/api-config";
 import { getCookie } from "../utils/cookies";
-
-const API_BASE_URL =
-  Constants.expoConfig?.extra?.apiBaseUrl || "http://localhost:5249";
 
 function buildUrl(endpoint: string): string {
   if (/^https?:\/\//i.test(endpoint)) return endpoint;
 
-  let base = API_BASE_URL || "";
+  let base = ApiConfig.baseUrl || "";
   base = base.replace(/\/+$/g, "");
 
   let ep = endpoint || "";

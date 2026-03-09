@@ -1,16 +1,13 @@
-import Constants from "expo-constants";
+import ApiConfig from "../utils/api-config";
 import { getCookie } from "../utils/cookies";
 import { decodeJWT } from "../utils/jwt";
-
-const API_BASE_URL =
-  Constants.expoConfig?.extra?.apiBaseUrl || "http://localhost:5249";
 
 // Build full URL safely to avoid duplicate segments like `/api/api` or duplicate slashes.
 function buildUrl(endpoint: string): string {
   // If endpoint is already an absolute URL, return it as-is
   if (/^https?:\/\//i.test(endpoint)) return endpoint;
 
-  let base = API_BASE_URL || "";
+  let base = ApiConfig.baseUrl || "";
   // remove trailing slashes from base
   base = base.replace(/\/+$/g, "");
 

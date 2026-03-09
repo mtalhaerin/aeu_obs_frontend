@@ -1,17 +1,25 @@
-import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import AdminSidePanel from '../components/admin-side-panel';
-import Loading from '../components/loading';
-import NavigationBar from '../components/navigation-bar';
-import Addresses from '../components/profile/addresses';
-import Emails from '../components/profile/emails';
-import Phones from '../components/profile/phones';
-import { IconSymbol } from '../components/ui/icon-symbol';
-import { IdentityType } from '../constants/identity-types';
-import { getCookie } from '../utils/cookies';
-import { getIdentityTypeFromToken } from '../utils/jwt';
-import { ROUTES } from './router';
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import NavigationBar from "../components/panels/navigation-panels/navigation-bar";
+import AdminSidePanel from "../components/panels/side-panels/admin-side-panel";
+import Addresses from "../components/profile/addresses";
+import Emails from "../components/profile/emails";
+import Phones from "../components/profile/phones";
+import { ProfileTexts } from "../components/texts/profile-texts";
+import { IconSymbol } from "../components/ui/icon-symbol";
+import Loading from "../components/ui/loading";
+import { IdentityType } from "../constants/identity-types";
+import { getCookie } from "../utils/cookies";
+import { getIdentityTypeFromToken } from "../utils/jwt";
+import { ROUTES } from "./router";
 
 const Profile: React.FC = () => {
   const router = useRouter();
@@ -21,7 +29,7 @@ const Profile: React.FC = () => {
 
   useEffect(() => {
     const t = setTimeout(() => {
-      const token = getCookie('accessToken');
+      const token = getCookie("accessToken");
       if (!token) {
         router.replace(ROUTES.LOGIN as any);
       } else {
@@ -36,7 +44,7 @@ const Profile: React.FC = () => {
   if (isChecking) {
     return (
       <View style={styles.container}>
-        <Loading text="Yükleniyor..." />
+        <Loading text={ProfileTexts.loading} />
       </View>
     );
   }
@@ -44,32 +52,44 @@ const Profile: React.FC = () => {
   const isAdmin = identityType === IdentityType.PERSONEL;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { userSelect: "none" } as any]}>
       <NavigationBar userName="Kullanıcı" />
       <View style={styles.mainContent}>
         {isAdmin && (
           <>
-            <AdminSidePanel userName="Admin Kullanıcı" isCollapsed={isPanelCollapsed} />
-            
+            <AdminSidePanel
+              userName="Admin Kullanıcı"
+              isCollapsed={isPanelCollapsed}
+            />
+
             <Pressable
               style={[
                 styles.toggleButton,
-                isPanelCollapsed ? styles.toggleButtonCollapsed : styles.toggleButtonExpanded,
+                isPanelCollapsed
+                  ? styles.toggleButtonCollapsed
+                  : styles.toggleButtonExpanded,
               ]}
               onPress={() => setIsPanelCollapsed(!isPanelCollapsed)}
             >
-              <IconSymbol  name={isPanelCollapsed ? 'chevron.right' : 'chevron.down'}  size={18}  color="#666"/>
+              <IconSymbol
+                name={isPanelCollapsed ? "chevron.right" : "chevron.down"}
+                size={18}
+                color="#666"
+              />
             </Pressable>
           </>
         )}
-        
-        <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
-          <Text style={styles.title}>Kişisel Bilgiler</Text>
-          <Text style={styles.subtitle}>Adresleriniz, telefon numaralarınız ve e-posta adreslerinizi yönetin</Text>
-          
+
+        <ScrollView
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+        >
+          <Text style={styles.title}>{ProfileTexts.pageTitle}</Text>
+          <Text style={styles.subtitle}>{ProfileTexts.subtitle}</Text>
+
           {identityType && (
             <Text style={styles.userType}>
-              Yetkili Tür: {identityType}
+              {ProfileTexts.authorizedType(identityType)}
             </Text>
           )}
 
@@ -87,17 +107,18 @@ const Profile: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   mainContent: {
     flex: 1,
-    flexDirection: 'row',
-    position: 'relative',
+    flexDirection: "row",
+    position: "relative",
   },
   content: {
     flex: 1,
     paddingVertical: 24,
     paddingHorizontal: 20,
+    marginHorizontal: "1%",
   },
   contentContainer: {
     paddingBottom: 30,
@@ -108,39 +129,39 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#181818',
+    fontWeight: "bold",
+    color: "#181818",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginBottom: 16,
   },
   userType: {
     fontSize: 12,
-    color: '#999',
-    fontStyle: 'italic',
+    color: "#999",
+    fontStyle: "italic",
     marginBottom: 24,
   },
   toggleButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 20,
     zIndex: 1000,
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
+    borderColor: "#e0e0e0",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    cursor: Platform.OS === 'web' ? 'pointer' : undefined,
+    cursor: Platform.OS === "web" ? "pointer" : undefined,
   },
   toggleButtonExpanded: {
     left: 268,

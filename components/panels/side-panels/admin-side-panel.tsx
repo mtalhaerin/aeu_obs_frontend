@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { IconSymbol } from "./ui/icon-symbol";
+import { IconSymbol } from "../../ui/icon-symbol";
 
 export interface AdminMenuItem {
   id: string;
