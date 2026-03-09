@@ -14,6 +14,7 @@ import {
   phoneAPI,
   TelefonTipi,
 } from "../../services/ozluk-api";
+import { IconSymbol } from "../ui/icon-symbol";
 
 interface PhonesProps {
   onRefresh?: () => void;
@@ -157,7 +158,13 @@ const Phones: React.FC<PhonesProps> = ({ onRefresh, targetUserUuid }) => {
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>☎️ Telefonlar</Text>
+        <IconSymbol
+          name="phone"
+          size={18}
+          color="#666"
+          style={{ marginRight: 8 }}
+        />
+        <Text style={styles.sectionTitle}>Telefonlar</Text>
       </View>
 
       {isExpanded && (
@@ -330,7 +337,7 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     padding: 16,
     backgroundColor: "#fff",
     borderBottomWidth: 1,

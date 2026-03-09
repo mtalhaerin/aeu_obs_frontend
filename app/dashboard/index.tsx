@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import appConfig from "../../app.json";
 import AcademicSidePanel from "../../components/academic-side-panel";
 import AdminSidePanel from "../../components/admin-side-panel";
 import Loading from "../../components/loading";
@@ -8,16 +9,63 @@ import NavigationBar from "../../components/navigation-bar";
 import StudentSidePanel from "../../components/student-side-panel";
 import { IconSymbol } from "../../components/ui/icon-symbol";
 import { IdentityType } from "../../constants/identity-types";
-import { getCookie } from "../../utils/cookies";
+import { getCookie, setCookie } from "../../utils/cookies";
 import { getIdentityTypeFromToken } from "../../utils/jwt";
 import { ROUTES } from "../router";
 
 const Dashboard: React.FC = () => {
   const router = useRouter();
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const [isChecking, setIsChecking] = useState(true);
   const [identityType, setIdentityType] = useState<IdentityType | null>(null);
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
+
+  // Get API base URL from app.json
+  const API_BASE_URL =
+    appConfig?.expo?.apiBaseUrl || "http://localhost:5249/api";
+  const COOKIE_EXPIRATION_MINUTES =
+    appConfig?.expo?.cookieExpirationMinutes || 60;
+
+  // Token refresh function
+  const refreshToken = async () => {
+    try {
+      const currentToken = getCookie("accessToken");
+      if (!currentToken) {
+        router.replace(ROUTES.LOGIN as any);
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${currentToken}`,
+        },
+      });
+
+      if (response.status === 200) {
+        const data = await response.json();
+        if (data?.data?.accessToken) {
+          // Update token in cookie
+          setCookie(
+            "accessToken",
+            data.data.accessToken,
+            COOKIE_EXPIRATION_MINUTES,
+          );
+          console.log("Token refreshed successfully");
+        }
+      } else {
+        // Refresh failed, redirect to login
+        console.log("Token refresh failed, redirecting to login");
+        router.replace(ROUTES.LOGIN as any);
+      }
+    } catch (error) {
+      console.error("Token refresh error:", error);
+      // On error, redirect to login
+      router.replace(ROUTES.LOGIN as any);
+    }
+  };
 
   useEffect(() => {
     // Delay navigation slightly to avoid "navigate before mounting" errors
@@ -30,9 +78,25 @@ const Dashboard: React.FC = () => {
         const userIdentityType = getIdentityTypeFromToken(token);
         setIdentityType(userIdentityType);
         setIsChecking(false);
+
+        // Set up token refresh interval (every 5 minutes = 300000ms)
+        refreshIntervalRef.current = setInterval(
+          () => {
+            refreshToken();
+          },
+          5 * 60 * 1000,
+        );
       }
     }, 100);
-    return () => clearTimeout(t);
+
+    // Cleanup function
+    return () => {
+      clearTimeout(t);
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+        refreshIntervalRef.current = null;
+      }
+    };
   }, [router]);
 
   if (isChecking) {

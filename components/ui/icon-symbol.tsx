@@ -33,6 +33,9 @@ const MAPPING = {
   "chart.bar": { type: "material", name: "bar-chart" },
   gear: { type: "material", name: "settings" },
   flask: { type: "material", name: "science" },
+  "location.pin": { type: "material", name: "location-on" },
+  envelope: { type: "material", name: "email" },
+  phone: { type: "material", name: "phone" },
 } as const;
 
 type IconSymbolName = keyof typeof MAPPING;
