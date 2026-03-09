@@ -306,7 +306,7 @@ const Emails: React.FC<EmailsProps> = ({ onRefresh, targetUserUuid }) => {
           {/* Add Button */}
           {!isAdding && !selectedEmail && (
             <Pressable
-              style={styles.addButton}
+              style={[styles.addButton, isLoading && styles.buttonDisabled]}
               onPress={handleAddNew}
               disabled={isLoading}
             >

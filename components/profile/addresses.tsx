@@ -291,7 +291,7 @@ const Addresses: React.FC<AddressesProps> = ({ onRefresh, targetUserUuid }) => {
           {/* Add Button */}
           {!isAdding && !selectedAddress && (
             <Pressable
-              style={styles.addButton}
+              style={[styles.addButton, isLoading && styles.buttonDisabled]}
               onPress={handleAddNew}
               disabled={isLoading}
             >

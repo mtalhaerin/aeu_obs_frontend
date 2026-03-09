@@ -312,7 +312,7 @@ const Phones: React.FC<PhonesProps> = ({ onRefresh, targetUserUuid }) => {
           {/* Add Button */}
           {!isAdding && !selectedPhone && (
             <Pressable
-              style={styles.addButton}
+              style={[styles.addButton, isLoading && styles.buttonDisabled]}
               onPress={handleAddNew}
               disabled={isLoading}
             >
