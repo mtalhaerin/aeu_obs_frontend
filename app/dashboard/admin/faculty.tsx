@@ -1,17 +1,17 @@
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Clipboard,
-    Linking,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Alert,
+  Clipboard,
+  Linking,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { ROUTES } from "../../../app/router";
 import NavigationBar from "../../../components/panels/navigation-panels/navigation-bar";
@@ -22,11 +22,13 @@ import Loading from "../../../components/ui/loading";
 import { Tooltip } from "../../../components/ui/tooltip";
 import { IdentityType } from "../../../constants/identity-types";
 import {
-    Faculty,
-    FacultyCreateRequest,
-    FacultyUpdateRequest,
-    facultyAPI,
+  Faculty,
+  FacultyCreateRequest,
+  FacultyUpdateRequest,
+  facultyAPI,
 } from "../../../services/faculty-api";
+import { Major, majorAPI } from "../../../services/major-api";
+import { Minor, minorAPI } from "../../../services/minor-api";
 import { getCookie } from "../../../utils/cookies";
 import { getIdentityTypeFromToken } from "../../../utils/jwt";
 
@@ -52,6 +54,10 @@ const FacultyManagement: React.FC = () => {
   const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingFaculty, setEditingFaculty] = useState<Faculty | null>(null);
+
+  const [facultyMajors, setFacultyMajors] = useState<Major[]>([]);
+  const [facultyMinors, setFacultyMinors] = useState<Minor[]>([]);
+  const [loadingRelated, setLoadingRelated] = useState(false);
 
   const [formErrors, setFormErrors] = useState<{ [key: string]: boolean }>({});
 
@@ -151,12 +157,50 @@ const FacultyManagement: React.FC = () => {
           webAdres: faculty.webAdres || "",
           kurulusTarihi: faculty.kurulusTarihi || "",
         });
+      } else if (mode === "view") {
+        loadFacultyRelatedData(faculty.fakulteUuid);
       }
     } else if (mode === "new") {
       setEditingFaculty(null);
       setFormData({ fakulteAdi: "", webAdres: "", kurulusTarihi: "" });
     }
     setFormErrors({});
+  };
+
+  const loadFacultyRelatedData = async (fakulteUuid: string) => {
+    try {
+      setLoadingRelated(true);
+
+      // Fakülteye bağlı bölümleri yükle
+      const majorsResponse = await majorAPI.getMajors({
+        fakulteUuid,
+        pageSize: 200,
+      });
+      const majors = majorsResponse.data || [];
+      setFacultyMajors(majors);
+
+      // Tüm bölümlere bağlı ana dalları yükle
+      if (majors.length > 0) {
+        const allMinors: Minor[] = [];
+        for (const major of majors) {
+          const minorsResponse = await minorAPI.getMinors({
+            bolumUuid: major.bolumUuid,
+            pageSize: 200,
+          });
+          const minors = minorsResponse.data || [];
+          allMinors.push(...minors);
+        }
+        setFacultyMinors(allMinors);
+      } else {
+        setFacultyMinors([]);
+      }
+    } catch (error: any) {
+      setFacultyMajors([]);
+      setFacultyMinors([]);
+      Alert.alert("Hata", "Bağlı veriler yüklenirken bir hata oluştu.");
+    } finally {
+      setLoadingRelated(false);
+    }
   };
 
   const isFormValid = () => {
@@ -470,18 +514,27 @@ const FacultyManagement: React.FC = () => {
                     <Pressable
                       style={styles.deleteButton}
                       onPress={() => {
-                        Alert.alert(
-                          "Silme Onayı",
-                          `"${faculty.fakulteAdi}" fakültesini silmek istediğinizden emin misiniz?`,
-                          [
-                            { text: "İptal", style: "cancel" },
-                            {
-                              text: "Sil",
-                              style: "destructive",
-                              onPress: () => handleDeleteFaculty(faculty),
-                            },
-                          ],
-                        );
+                        if (Platform.OS === "web") {
+                          const result = window.confirm(
+                            `"${faculty.fakulteAdi}" fakültesini silmek istediğinizden emin misiniz?`,
+                          );
+                          if (result) {
+                            handleDeleteFaculty(faculty);
+                          }
+                        } else {
+                          Alert.alert(
+                            "Silme Onayı",
+                            `"${faculty.fakulteAdi}" fakültesini silmek istediğinizden emin misiniz?`,
+                            [
+                              { text: "İptal", style: "cancel" },
+                              {
+                                text: "Sil",
+                                style: "destructive",
+                                onPress: () => handleDeleteFaculty(faculty),
+                              },
+                            ],
+                          );
+                        }
                       }}
                     >
                       <IconSymbol name="trash" size={12} color="#FF3B30" />
@@ -751,6 +804,66 @@ const FacultyManagement: React.FC = () => {
                 </Text>
               </View>
             </View>
+
+            {loadingRelated && (
+              <ActivityIndicator
+                size="large"
+                color="#007AFF"
+                style={{ marginVertical: 20 }}
+              />
+            )}
+
+            {!loadingRelated && facultyMajors.length > 0 && (
+              <View style={styles.infoBox}>
+                <Text style={styles.infoTitle}>
+                  Bağlı Bölümler ({facultyMajors.length})
+                </Text>
+                {facultyMajors.map((major) => {
+                  const relatedMinors = facultyMinors.filter(
+                    (minor) => minor.bolumUuid === major.bolumUuid,
+                  );
+                  return (
+                    <View key={major.bolumUuid} style={styles.majorSection}>
+                      <View style={styles.majorHeader}>
+                        <IconSymbol
+                          name="building.2"
+                          size={16}
+                          color="#007AFF"
+                        />
+                        <Text style={styles.majorName}>{major.bolumAdi}</Text>
+                        <Text style={styles.minorCount}>
+                          ({relatedMinors.length} Ana Dal)
+                        </Text>
+                      </View>
+                      {relatedMinors.length > 0 && (
+                        <View style={styles.minorsContainer}>
+                          {relatedMinors.map((minor) => (
+                            <View
+                              key={minor.anaDalUuid}
+                              style={styles.minorItem}
+                            >
+                              <View style={styles.minorBullet} />
+                              <Text style={styles.minorName}>
+                                {minor.anaDalAdi}
+                              </Text>
+                            </View>
+                          ))}
+                        </View>
+                      )}
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+
+            {!loadingRelated && facultyMajors.length === 0 && (
+              <View style={styles.infoBox}>
+                <Text style={styles.infoTitle}>Bağlı Bölümler</Text>
+                <Text style={styles.emptyDataText}>
+                  Bu fakülteye henüz bölüm eklenmemiş.
+                </Text>
+              </View>
+            )}
           </View>
         </ScrollView>
       </View>
@@ -1269,6 +1382,57 @@ const styles = StyleSheet.create({
   },
   toggleButtonCollapsed: {
     left: 12,
+  },
+  majorSection: {
+    marginBottom: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  majorHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 8,
+  },
+  majorName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#007AFF",
+    flex: 1,
+  },
+  minorCount: {
+    fontSize: 13,
+    color: "#666",
+    fontStyle: "italic",
+  },
+  minorsContainer: {
+    marginLeft: 24,
+    marginTop: 8,
+    gap: 6,
+  },
+  minorItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 4,
+  },
+  minorName: {
+    fontSize: 14,
+    color: "#495057",
+  },
+  minorBullet: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#666",
+  },
+  emptyDataText: {
+    fontSize: 14,
+    color: "#999",
+    fontStyle: "italic",
+    textAlign: "center",
+    marginTop: 8,
   },
 });
 

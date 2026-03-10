@@ -1,36 +1,36 @@
 export const MinorTexts = {
-  pageTitle: "Bölüm Yönetimi",
-  newMinorTitle: "Yeni Bölüm",
-  editMinorTitle: "Bölüm Düzenle",
-  minorInfoTitle: "Bölüm Bilgileri",
+  pageTitle: "Ana Dal Yönetimi",
+  newMinorTitle: "Yeni Ana Dal",
+  editMinorTitle: "Ana Dal Düzenle",
+  minorInfoTitle: "Ana Dal Bilgileri",
 
   search: {
     filtersTitle: "Arama Filtreleri",
     searchButton: "Ara",
     refreshButton: "Yenile",
-    addButton: "Yeni Bölüm",
+    addButton: "Yeni Ana Dal",
     backButton: "Geri Dön",
   },
 
   placeholders: {
-    searchName: "Bölüm adı ara...",
-    enterName: "Bölüm adını giriniz",
+    searchName: "Ana dal adı ara...",
+    enterName: "Ana dal adını giriniz",
     enterFoundedDate: "Kuruluş tarihi (örn: 2000-01-01T00:00:00Z)",
-    selectMajor: "Ana dal seçiniz",
+    selectMajor: "Bölüm seçiniz",
   },
 
   labels: {
-    minorName: "Bölüm Adı *",
-    major: "Ana Dal *",
+    minorName: "Ana Dal Adı *",
+    major: "Bölüm *",
     foundedDate: "Kuruluş Tarihi",
-    name: "Bölüm:",
-    majorLabel: "Ana Dal:",
+    name: "Ana Dal:",
+    majorLabel: "Bölüm:",
     founded: "Kuruluş:",
   },
 
   table: {
-    name: "Bölüm Adı",
-    major: "Ana Dal",
+    name: "Ana Dal Adı",
+    major: "Bölüm",
     foundedDate: "Kuruluş Tarihi",
     actions: "İşlemler",
   },
@@ -48,33 +48,33 @@ export const MinorTexts = {
 
   messages: {
     loading: "Yükleniyor...",
-    noData: "Bölüm bulunamadı",
-    loadingMajors: "Ana dallar yükleniyor...",
+    noData: "Ana dal bulunamadı",
+    loadingMajors: "Bölümler yükleniyor...",
     totalMinors: (total: number, page: number) =>
-      `Toplam ${total} bölüm - Sayfa ${page}`,
+      `Toplam ${total} ana dal - Sayfa ${page}`,
   },
 
   success: {
-    minorCreated: "Bölüm başarıyla oluşturuldu.",
-    minorUpdated: "Bölüm başarıyla güncellendi.",
-    minorDeleted: "Bölüm silindi.",
+    minorCreated: "Ana dal başarıyla oluşturuldu.",
+    minorUpdated: "Ana dal başarıyla güncellendi.",
+    minorDeleted: "Ana dal silindi.",
   },
 
   errors: {
     general: "Hata",
-    loadMinorsError: "Bölümler yüklenirken hata oluştu.",
-    loadMajorsError: "Ana dallar yüklenirken hata oluştu.",
-    createMinorError: "Bölüm oluşturulurken hata oluştu.",
-    updateMinorError: "Bölüm güncellenirken hata oluştu.",
+    loadMinorsError: "Ana dallar yüklenirken hata oluştu.",
+    loadMajorsError: "Bölümler yüklenirken hata oluştu.",
+    createMinorError: "Ana dal oluşturulurken hata oluştu.",
+    updateMinorError: "Ana dal güncellenirken hata oluştu.",
     deleteMinorError: "Silme işlemi başarısız.",
-    minorNotFoundForEdit: "Düzenlenecek bölüm bulunamadı.",
+    minorNotFoundForEdit: "Düzenlenecek ana dal bulunamadı.",
     fillAllFields: "Lütfen tüm gerekli alanları doldurunuz.",
   },
 
   copy: (label: string) => `${label} kopyalandı!`,
 
   validation: {
-    nameMin: "Bölüm adı en az 2 karakter olmalıdır",
-    majorRequired: "Ana dal seçimi zorunludur",
+    nameMin: "Ana dal adı en az 2 karakter olmalıdır",
+    majorRequired: "Bölüm seçimi zorunludur",
   },
 } as const;

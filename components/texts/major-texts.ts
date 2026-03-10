@@ -1,35 +1,35 @@
 export const MajorTexts = {
-  pageTitle: "Ana Dal Yönetimi",
-  newMajorTitle: "Yeni Ana Dal",
-  editMajorTitle: "Ana Dal Düzenle",
-  majorInfoTitle: "Ana Dal Bilgileri",
+  pageTitle: "Bölüm Yönetimi",
+  newMajorTitle: "Yeni Bölüm",
+  editMajorTitle: "Bölüm Düzenle",
+  majorInfoTitle: "Bölüm Bilgileri",
 
   search: {
     filtersTitle: "Arama Filtreleri",
     searchButton: "Ara",
     refreshButton: "Yenile",
-    addButton: "Yeni Ana Dal",
+    addButton: "Yeni Bölüm",
     backButton: "Geri Dön",
   },
 
   placeholders: {
-    searchName: "Ana dal adı ara...",
-    enterName: "Ana dal adını giriniz",
+    searchName: "Bölüm adı ara...",
+    enterName: "Bölüm adını giriniz",
     enterFoundedDate: "Kuruluş tarihi (örn: 2000-01-01T00:00:00Z)",
     selectFaculty: "Fakülte seçiniz",
   },
 
   labels: {
-    majorName: "Ana Dal Adı *",
+    majorName: "Bölüm Adı *",
     faculty: "Fakülte *",
     foundedDate: "Kuruluş Tarihi",
-    name: "Ana Dal:",
+    name: "Bölüm:",
     facultyLabel: "Fakülte:",
     founded: "Kuruluş:",
   },
 
   table: {
-    name: "Ana Dal Adı",
+    name: "Bölüm Adı",
     faculty: "Fakülte",
     foundedDate: "Kuruluş Tarihi",
     actions: "İşlemler",
@@ -48,33 +48,33 @@ export const MajorTexts = {
 
   messages: {
     loading: "Yükleniyor...",
-    noData: "Ana dal bulunamadı",
+    noData: "Bölüm bulunamadı",
     loadingFaculties: "Fakülteler yükleniyor...",
     totalMajors: (total: number, page: number) =>
-      `Toplam ${total} ana dal - Sayfa ${page}`,
+      `Toplam ${total} bölüm - Sayfa ${page}`,
   },
 
   success: {
-    majorCreated: "Ana dal başarıyla oluşturuldu.",
-    majorUpdated: "Ana dal başarıyla güncellendi.",
-    majorDeleted: "Ana dal silindi.",
+    majorCreated: "Bölüm başarıyla oluşturuldu.",
+    majorUpdated: "Bölüm başarıyla güncellendi.",
+    majorDeleted: "Bölüm silindi.",
   },
 
   errors: {
     general: "Hata",
-    loadMajorsError: "Ana dallar yüklenirken hata oluştu.",
+    loadMajorsError: "Bölümler yüklenirken hata oluştu.",
     loadFacultiesError: "Fakülteler yüklenirken hata oluştu.",
-    createMajorError: "Ana dal oluşturulurken hata oluştu.",
-    updateMajorError: "Ana dal güncellenirken hata oluştu.",
+    createMajorError: "Bölüm oluşturulurken hata oluştu.",
+    updateMajorError: "Bölüm güncellenirken hata oluştu.",
     deleteMajorError: "Silme işlemi başarısız.",
-    majorNotFoundForEdit: "Düzenlenecek ana dal bulunamadı.",
+    majorNotFoundForEdit: "Düzenlenecek bölüm bulunamadı.",
     fillAllFields: "Lütfen tüm gerekli alanları doldurunuz.",
   },
 
   copy: (label: string) => `${label} kopyalandı!`,
 
   validation: {
-    nameMin: "Ana dal adı en az 2 karakter olmalıdır",
+    nameMin: "Bölüm adı en az 2 karakter olmalıdır",
     facultyRequired: "Fakülte seçimi zorunludur",
   },
 } as const;

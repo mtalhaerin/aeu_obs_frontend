@@ -52,11 +52,11 @@ const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
           label: "Genel Bakış",
           route: "/dashboard/dashboard",
         },
-        // {
-        //   id: "dashboard-stats",
-        //   label: "İstatistikler",
-        //   route: "/dashboard/stats",
-        // },
+        {
+          id: "dashboard-stats",
+          label: "İstatistikler",
+          route: "/dashboard/stats",
+        },
       ],
     },
     {
@@ -64,19 +64,19 @@ const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
       title: "Akademik Yapı",
       icon: "building.2",
       items: [
-        {
-          id: "faculty-management",
-          label: "Fakülte Yönetimi",
-          route: "/dashboard/admin/faculty",
-        },
-        {
-          id: "major-management",
-          label: "Ana Dal Yönetimi",
-          route: "/dashboard/admin/major",
-        },
+        // {
+        //   id: "faculty-management",
+        //   label: "Fakülte Yönetimi",
+        //   route: "/dashboard/admin/faculty",
+        // },
+        // {
+        //   id: "major-management",
+        //   label: "Bölüm Yönetimi",
+        //   route: "/dashboard/admin/major",
+        // },
         {
           id: "minor-management",
-          label: "Bölüm Yönetimi",
+          label: "Ana Dal Yönetimi",
           route: "/dashboard/admin/minor",
         },
       ],
@@ -98,16 +98,16 @@ const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
       title: "Ders İşlemleri",
       icon: "book",
       items: [
-        {
-          id: "lectures-management",
-          label: "Ders Yönetimi",
-          route: "/dashboard/admin/lecture",
-        },
         // {
-        //   id: "courses-schedule",
-        //   label: "Ders Programı",
-        //   route: "/dashboard/courses/schedule",
+        //   id: "lectures-management",
+        //   label: "Ders Yönetimi",
+        //   route: "/dashboard/admin/lecture",
         // },
+        {
+          id: "courses-schedule",
+          label: "Ders Programı",
+          route: "/dashboard/courses/schedule",
+        },
       ],
     },
     {

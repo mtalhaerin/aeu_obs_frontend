@@ -2,16 +2,16 @@ import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Clipboard,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Alert,
+  Clipboard,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import NavigationBar from "../../../components/panels/navigation-panels/navigation-bar";
 import AdminSidePanel from "../../../components/panels/side-panels/admin-side-panel";
@@ -24,10 +24,10 @@ import Loading from "../../../components/ui/loading";
 import { Tooltip } from "../../../components/ui/tooltip";
 import { IdentityType } from "../../../constants/identity-types";
 import {
-    User,
-    userAPI,
-    UserCreateRequest,
-    UserUpdateRequest,
+  User,
+  userAPI,
+  UserCreateRequest,
+  UserUpdateRequest,
 } from "../../../services/user-api";
 import { getCookie } from "../../../utils/cookies";
 import { getIdentityTypeFromToken } from "../../../utils/jwt";
@@ -279,7 +279,7 @@ const UserManagement: React.FC = () => {
     try {
       setLoading(true);
       const createData: UserCreateRequest = {
-        kullaniciTipi: formData.kullaniciTipi,
+        kullaniciTipi: Number.parseInt(formData.kullaniciTipi.toString()),
         ad: formData.ad || null,
         ortaAd: formData.ortaAd || null,
         soyad: formData.soyad || null,
@@ -319,7 +319,7 @@ const UserManagement: React.FC = () => {
       setLoading(true);
       const updateData: UserUpdateRequest = {
         kullaniciUuid: editingUser.kullaniciUuid,
-        kullaniciTipi: formData.kullaniciTipi,
+        kullaniciTipi: Number.parseInt(formData.kullaniciTipi.toString()),
         ad: formData.ad || null,
         ortaAd: formData.ortaAd || null,
         soyad: formData.soyad || null,
@@ -639,7 +639,32 @@ const UserManagement: React.FC = () => {
                 <Pressable
                   style={styles.deleteButton}
                   onPress={() => {
-                    handleDeleteUser(user);
+                    const fullName =
+                      `${user.ad || ""} ${user.ortaAd || ""} ${user.soyad || ""}`.trim() ||
+                      user.kurumEposta;
+
+                    if (Platform.OS === "web") {
+                      if (
+                        window.confirm(
+                          `"${fullName}" kullanıcısını silmek istediğinizden emin misiniz?`,
+                        )
+                      ) {
+                        handleDeleteUser(user);
+                      }
+                    } else {
+                      Alert.alert(
+                        "Silme Onayı",
+                        `"${fullName}" kullanıcısını silmek istediğinizden emin misiniz?`,
+                        [
+                          { text: "İptal", style: "cancel" },
+                          {
+                            text: "Sil",
+                            style: "destructive",
+                            onPress: () => handleDeleteUser(user),
+                          },
+                        ],
+                      );
+                    }
                   }}
                 >
                   <IconSymbol name="trash" size={14} color="#FF3B30" />

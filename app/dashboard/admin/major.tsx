@@ -2,16 +2,16 @@ import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Clipboard,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Alert,
+  Clipboard,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { ROUTES } from "../../../app/router";
 import NavigationBar from "../../../components/panels/navigation-panels/navigation-bar";
@@ -23,11 +23,12 @@ import { Tooltip } from "../../../components/ui/tooltip";
 import { IdentityType } from "../../../constants/identity-types";
 import { Faculty, facultyAPI } from "../../../services/faculty-api";
 import {
-    Major,
-    MajorCreateRequest,
-    MajorUpdateRequest,
-    majorAPI,
+  Major,
+  MajorCreateRequest,
+  MajorUpdateRequest,
+  majorAPI,
 } from "../../../services/major-api";
+import { Minor, minorAPI } from "../../../services/minor-api";
 import { getCookie } from "../../../utils/cookies";
 import { getIdentityTypeFromToken } from "../../../utils/jwt";
 
@@ -36,8 +37,8 @@ type ViewMode = "list" | "new" | "edit" | "view";
 const validateForm = (formData: any) => {
   const errors: { [key: string]: boolean } = {};
 
-  if (!formData.anaDalAdi || formData.anaDalAdi.trim().length < 2) {
-    errors.anaDalAdi = true;
+  if (!formData.bolumAdi || formData.bolumAdi.trim().length < 2) {
+    errors.bolumAdi = true;
   }
 
   if (!formData.fakulteUuid || formData.fakulteUuid.trim() === "") {
@@ -59,10 +60,13 @@ const MajorManagement: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [editingMajor, setEditingMajor] = useState<Major | null>(null);
 
+  const [majorMinors, setMajorMinors] = useState<Minor[]>([]);
+  const [loadingRelated, setLoadingRelated] = useState(false);
+
   const [formErrors, setFormErrors] = useState<{ [key: string]: boolean }>({});
 
   const [formData, setFormData] = useState({
-    anaDalAdi: "",
+    bolumAdi: "",
     fakulteUuid: "",
     kurulusTarihi: "",
   });
@@ -73,7 +77,7 @@ const MajorManagement: React.FC = () => {
   const [isLastPage, setIsLastPage] = useState(false);
 
   const [searchFilters, setSearchFilters] = useState({
-    anaDalAdi: "",
+    bolumAdi: "",
     fakulteUuid: "",
   });
 
@@ -155,7 +159,7 @@ const MajorManagement: React.FC = () => {
   };
 
   const handleClearFilters = () => {
-    const defaultFilters = { anaDalAdi: "", fakulteUuid: "" };
+    const defaultFilters = { bolumAdi: "", fakulteUuid: "" };
     setSearchFilters(defaultFilters);
     setCurrentPage(1);
     setIsLastPage(false);
@@ -168,16 +172,34 @@ const MajorManagement: React.FC = () => {
       setEditingMajor(major);
       if (mode === "edit") {
         setFormData({
-          anaDalAdi: major.anaDalAdi,
+          bolumAdi: major.bolumAdi,
           fakulteUuid: major.fakulteUuid,
           kurulusTarihi: major.kurulusTarihi || "",
         });
+      } else if (mode === "view") {
+        loadMajorMinors(major.bolumUuid);
       }
     } else if (mode === "new") {
       setEditingMajor(null);
-      setFormData({ anaDalAdi: "", fakulteUuid: "", kurulusTarihi: "" });
+      setFormData({ bolumAdi: "", fakulteUuid: "", kurulusTarihi: "" });
     }
     setFormErrors({});
+  };
+
+  const loadMajorMinors = async (bolumUuid: string) => {
+    try {
+      setLoadingRelated(true);
+      const minorsResponse = await minorAPI.getMinors({
+        bolumUuid,
+        pageSize: 200,
+      });
+      setMajorMinors(minorsResponse.data || []);
+    } catch (error: any) {
+      setMajorMinors([]);
+      Alert.alert("Hata", "Ana dallar yüklenirken bir hata oluştu.");
+    } finally {
+      setLoadingRelated(false);
+    }
   };
 
   const isFormValid = () => {
@@ -194,7 +216,7 @@ const MajorManagement: React.FC = () => {
     try {
       setLoading(true);
       const createData: MajorCreateRequest = {
-        anaDalAdi: formData.anaDalAdi.trim(),
+        bolumAdi: formData.bolumAdi.trim(),
         fakulteUuid: formData.fakulteUuid,
         kurulusTarihi: formData.kurulusTarihi.trim() || null,
       };
@@ -230,8 +252,8 @@ const MajorManagement: React.FC = () => {
     try {
       setLoading(true);
       const updateData: MajorUpdateRequest = {
-        anaDalUuid: editingMajor.anaDalUuid,
-        anaDalAdi: formData.anaDalAdi.trim(),
+        bolumUuid: editingMajor.bolumUuid,
+        bolumAdi: formData.bolumAdi.trim(),
         fakulteUuid: formData.fakulteUuid,
         kurulusTarihi: formData.kurulusTarihi.trim() || null,
       };
@@ -253,7 +275,7 @@ const MajorManagement: React.FC = () => {
   const handleDeleteMajor = async (major: Major) => {
     try {
       setLoading(true);
-      await majorAPI.deleteMajor(major.anaDalUuid);
+      await majorAPI.deleteMajor(major.bolumUuid);
       await loadMajors(currentPage, searchFilters);
       Alert.alert("Başarılı", MajorTexts.success.majorDeleted);
     } catch (error: any) {
@@ -296,15 +318,37 @@ const MajorManagement: React.FC = () => {
       <Text style={styles.searchTitle}>{MajorTexts.search.filtersTitle}</Text>
       <View style={styles.filterRow}>
         <View style={styles.filterItem}>
-          <Text style={styles.filterLabel}>Ana Dal Adı</Text>
+          <Text style={styles.filterLabel}>Bölüm Adı</Text>
           <TextInput
             style={styles.filterInput}
-            value={searchFilters.anaDalAdi}
+            value={searchFilters.bolumAdi}
             onChangeText={(text) =>
-              setSearchFilters((prev) => ({ ...prev, anaDalAdi: text }))
+              setSearchFilters((prev) => ({ ...prev, bolumAdi: text }))
             }
             placeholder={MajorTexts.placeholders.searchName}
           />
+        </View>
+
+        <View style={styles.filterItem}>
+          <Text style={styles.filterLabel}>Fakülte</Text>
+          <View style={styles.filterPickerContainer}>
+            <Picker
+              selectedValue={searchFilters.fakulteUuid}
+              style={styles.filterPicker}
+              onValueChange={(value) =>
+                setSearchFilters((prev) => ({ ...prev, fakulteUuid: value }))
+              }
+            >
+              <Picker.Item label="Tümü" value="" />
+              {faculties.map((faculty) => (
+                <Picker.Item
+                  key={faculty.fakulteUuid}
+                  label={faculty.fakulteAdi}
+                  value={faculty.fakulteUuid}
+                />
+              ))}
+            </Picker>
+          </View>
         </View>
 
         <Pressable style={styles.searchButton} onPress={handleSearch}>
@@ -381,7 +425,7 @@ const MajorManagement: React.FC = () => {
           {Array.isArray(majors) &&
             majors.map((major, index) => (
               <View
-                key={major.anaDalUuid}
+                key={major.bolumUuid}
                 style={[
                   styles.tableRow,
                   index % 2 === 0 && styles.tableRowEven,
@@ -389,11 +433,11 @@ const MajorManagement: React.FC = () => {
               >
                 <View style={styles.colName}>
                   <View style={styles.nameCellContainer}>
-                    <Text style={styles.tableCell}>{major.anaDalAdi}</Text>
+                    <Text style={styles.tableCell}>{major.bolumAdi}</Text>
                     <Pressable
                       style={styles.copyButton}
                       onPress={() =>
-                        handleCopyToClipboard(major.anaDalAdi, "Ana Dal Adı")
+                        handleCopyToClipboard(major.bolumAdi, "Bölüm Adı")
                       }
                     >
                       <IconSymbol name="copy" size={12} color="#007AFF" />
@@ -444,18 +488,21 @@ const MajorManagement: React.FC = () => {
                     <Pressable
                       style={styles.deleteButton}
                       onPress={() => {
-                        Alert.alert(
-                          "Silme Onayı",
-                          `"${major.anaDalAdi}" ana dalını silmek istediğinizden emin misiniz?`,
-                          [
+                        const message = `"${major.bolumAdi}" bölümünü silmek istediğinizden emin misiniz?`;
+                        if (Platform.OS === "web") {
+                          if (window.confirm(message)) {
+                            handleDeleteMajor(major);
+                          }
+                        } else {
+                          Alert.alert("Silme Onayı", message, [
                             { text: "İptal", style: "cancel" },
                             {
                               text: "Sil",
                               style: "destructive",
                               onPress: () => handleDeleteMajor(major),
                             },
-                          ],
-                        );
+                          ]);
+                        }
                       }}
                     >
                       <IconSymbol name="trash" size={12} color="#FF3B30" />
@@ -552,14 +599,14 @@ const MajorManagement: React.FC = () => {
           <View style={styles.formRow}>
             <Text style={styles.label}>{MajorTexts.labels.majorName}</Text>
             <TextInput
-              style={[styles.input, formErrors.anaDalAdi && styles.errorInput]}
-              value={formData.anaDalAdi}
+              style={[styles.input, formErrors.bolumAdi && styles.errorInput]}
+              value={formData.bolumAdi}
               onChangeText={(text) =>
-                setFormData((prev) => ({ ...prev, anaDalAdi: text }))
+                setFormData((prev) => ({ ...prev, bolumAdi: text }))
               }
               placeholder={MajorTexts.placeholders.enterName}
             />
-            {formErrors.anaDalAdi && (
+            {formErrors.bolumAdi && (
               <Text style={styles.errorText}>
                 {MajorTexts.validation.nameMin}
               </Text>
@@ -646,7 +693,7 @@ const MajorManagement: React.FC = () => {
     if (!editingMajor) {
       return (
         <View style={styles.formContainer}>
-          <Text>Ana dal bulunamadı</Text>
+          <Text>Bölüm bulunamadı</Text>
         </View>
       );
     }
@@ -672,7 +719,7 @@ const MajorManagement: React.FC = () => {
         >
           <View style={styles.profileSectionsContainer}>
             <Text style={styles.profileSubtitle}>
-              Ana dalin detaylı bilgilerini görüntüleyin
+              Bölümün detaylı bilgilerini görüntüleyin
             </Text>
 
             <View style={styles.infoBox}>
@@ -681,14 +728,11 @@ const MajorManagement: React.FC = () => {
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>{MajorTexts.labels.name}</Text>
                 <View style={styles.copyableRow}>
-                  <Text style={styles.infoValue}>{editingMajor.anaDalAdi}</Text>
+                  <Text style={styles.infoValue}>{editingMajor.bolumAdi}</Text>
                   <Pressable
                     style={styles.copyButton}
                     onPress={() =>
-                      handleCopyToClipboard(
-                        editingMajor.anaDalAdi,
-                        "Ana Dal Adı",
-                      )
+                      handleCopyToClipboard(editingMajor.bolumAdi, "Bölüm Adı")
                     }
                   >
                     <IconSymbol name="copy" size={12} color="#007AFF" />
@@ -714,6 +758,46 @@ const MajorManagement: React.FC = () => {
                 </Text>
               </View>
             </View>
+
+            {loadingRelated && (
+              <ActivityIndicator
+                size="large"
+                color="#007AFF"
+                style={{ marginVertical: 20 }}
+              />
+            )}
+
+            {!loadingRelated && majorMinors.length > 0 && (
+              <View style={styles.infoBox}>
+                <Text style={styles.infoTitle}>
+                  Bağlı Ana Dallar ({majorMinors.length})
+                </Text>
+                <View style={styles.minorsListContainer}>
+                  {majorMinors.map((minor) => (
+                    <View key={minor.anaDalUuid} style={styles.minorListItem}>
+                      <View style={styles.minorBullet} />
+                      <Text style={styles.minorListName}>
+                        {minor.anaDalAdi}
+                      </Text>
+                      {minor.kurulusTarihi && (
+                        <Text style={styles.minorDate}>
+                          ({formatDate(minor.kurulusTarihi)})
+                        </Text>
+                      )}
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {!loadingRelated && majorMinors.length === 0 && (
+              <View style={styles.infoBox}>
+                <Text style={styles.infoTitle}>Bağlı Ana Dallar</Text>
+                <Text style={styles.emptyDataText}>
+                  Bu bölüme henüz ana dal eklenmemiş.
+                </Text>
+              </View>
+            )}
           </View>
         </ScrollView>
       </View>
@@ -722,7 +806,7 @@ const MajorManagement: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <NavigationBar userName="Ana Dal" />
+      <NavigationBar userName="Bölüm" />
       <View style={styles.mainContent}>
         {isAdmin && (
           <>
@@ -824,6 +908,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     backgroundColor: "#fff",
     height: 40,
+  },
+  filterPickerContainer: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 6,
+    backgroundColor: "#fff",
+    height: 40,
+    justifyContent: "center",
+  },
+  filterPicker: {
+    height: 40,
+    fontSize: 14,
+    color: "#333",
   },
   searchButton: {
     flexDirection: "row",
@@ -1247,6 +1344,45 @@ const styles = StyleSheet.create({
   },
   toggleButtonCollapsed: {
     left: 12,
+  },
+  minorsListContainer: {
+    gap: 8,
+    marginTop: 8,
+  },
+  minorListItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 6,
+    borderLeftWidth: 3,
+    borderLeftColor: "#007AFF",
+  },
+  minorBullet: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#007AFF",
+  },
+  minorListName: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#333",
+    flex: 1,
+  },
+  minorDate: {
+    fontSize: 12,
+    color: "#666",
+    fontStyle: "italic",
+  },
+  emptyDataText: {
+    fontSize: 14,
+    color: "#999",
+    fontStyle: "italic",
+    textAlign: "center",
+    marginTop: 8,
   },
 });
 

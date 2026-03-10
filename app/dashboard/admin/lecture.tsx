@@ -620,18 +620,21 @@ const LectureManagement: React.FC = () => {
                     <Pressable
                       style={styles.deleteButton}
                       onPress={() => {
-                        Alert.alert(
-                          "Silme Onayı",
-                          `${lecture.dersKodu} - ${lecture.dersAdi} dersini silmek istediğinizden emin misiniz?`,
-                          [
+                        const message = `${lecture.dersKodu} - ${lecture.dersAdi} dersini silmek istediğinizden emin misiniz?`;
+                        if (Platform.OS === "web") {
+                          if (window.confirm(message)) {
+                            handleDeleteLecture(lecture);
+                          }
+                        } else {
+                          Alert.alert("Silme Onayı", message, [
                             { text: "İptal", style: "cancel" },
                             {
                               text: "Sil",
                               style: "destructive",
                               onPress: () => handleDeleteLecture(lecture),
                             },
-                          ],
-                        );
+                          ]);
+                        }
                       }}
                     >
                       <IconSymbol name="trash" size={12} color="#FF3B30" />

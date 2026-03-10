@@ -2,16 +2,16 @@ import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Clipboard,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Alert,
+  Clipboard,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { ROUTES } from "../../../app/router";
 import NavigationBar from "../../../components/panels/navigation-panels/navigation-bar";
@@ -23,10 +23,10 @@ import { Tooltip } from "../../../components/ui/tooltip";
 import { IdentityType } from "../../../constants/identity-types";
 import { Major, majorAPI } from "../../../services/major-api";
 import {
-    Minor,
-    MinorCreateRequest,
-    MinorUpdateRequest,
-    minorAPI,
+  Minor,
+  MinorCreateRequest,
+  MinorUpdateRequest,
+  minorAPI,
 } from "../../../services/minor-api";
 import { getCookie } from "../../../utils/cookies";
 import { getIdentityTypeFromToken } from "../../../utils/jwt";
@@ -36,12 +36,12 @@ type ViewMode = "list" | "new" | "edit" | "view";
 const validateForm = (formData: any) => {
   const errors: { [key: string]: boolean } = {};
 
-  if (!formData.bolumAdi || formData.bolumAdi.trim().length < 2) {
-    errors.bolumAdi = true;
+  if (!formData.anaDalAdi || formData.anaDalAdi.trim().length < 2) {
+    errors.anaDalAdi = true;
   }
 
-  if (!formData.anaDalUuid || formData.anaDalUuid.trim() === "") {
-    errors.anaDalUuid = true;
+  if (!formData.bolumUuid || formData.bolumUuid.trim() === "") {
+    errors.bolumUuid = true;
   }
 
   return errors;
@@ -62,8 +62,8 @@ const MinorManagement: React.FC = () => {
   const [formErrors, setFormErrors] = useState<{ [key: string]: boolean }>({});
 
   const [formData, setFormData] = useState({
-    bolumAdi: "",
-    anaDalUuid: "",
+    anaDalAdi: "",
+    bolumUuid: "",
     kurulusTarihi: "",
   });
 
@@ -73,8 +73,8 @@ const MinorManagement: React.FC = () => {
   const [isLastPage, setIsLastPage] = useState(false);
 
   const [searchFilters, setSearchFilters] = useState({
-    bolumAdi: "",
-    anaDalUuid: "",
+    anaDalAdi: "",
+    bolumUuid: "",
   });
 
   const [copyTooltip, setCopyTooltip] = useState<{
@@ -112,9 +112,9 @@ const MinorManagement: React.FC = () => {
     }
   };
 
-  const getMajorName = (anaDalUuid: string) => {
-    const major = majors.find((m) => m.anaDalUuid === anaDalUuid);
-    return major ? major.anaDalAdi : anaDalUuid;
+  const getMajorName = (bolumUuid: string) => {
+    const major = majors.find((m) => m.bolumUuid === bolumUuid);
+    return major ? major.bolumAdi : bolumUuid;
   };
 
   const loadMinors = async (page = currentPage, filters = searchFilters) => {
@@ -155,7 +155,7 @@ const MinorManagement: React.FC = () => {
   };
 
   const handleClearFilters = () => {
-    const defaultFilters = { bolumAdi: "", anaDalUuid: "" };
+    const defaultFilters = { anaDalAdi: "", bolumUuid: "" };
     setSearchFilters(defaultFilters);
     setCurrentPage(1);
     setIsLastPage(false);
@@ -168,14 +168,14 @@ const MinorManagement: React.FC = () => {
       setEditingMinor(minor);
       if (mode === "edit") {
         setFormData({
-          bolumAdi: minor.bolumAdi,
-          anaDalUuid: minor.anaDalUuid,
+          anaDalAdi: minor.anaDalAdi,
+          bolumUuid: minor.bolumUuid,
           kurulusTarihi: minor.kurulusTarihi || "",
         });
       }
     } else if (mode === "new") {
       setEditingMinor(null);
-      setFormData({ bolumAdi: "", anaDalUuid: "", kurulusTarihi: "" });
+      setFormData({ anaDalAdi: "", bolumUuid: "", kurulusTarihi: "" });
     }
     setFormErrors({});
   };
@@ -194,8 +194,8 @@ const MinorManagement: React.FC = () => {
     try {
       setLoading(true);
       const createData: MinorCreateRequest = {
-        bolumAdi: formData.bolumAdi.trim(),
-        anaDalUuid: formData.anaDalUuid,
+        anaDalAdi: formData.anaDalAdi.trim(),
+        bolumUuid: formData.bolumUuid,
         kurulusTarihi: formData.kurulusTarihi.trim() || null,
       };
       await minorAPI.createMinor(createData);
@@ -230,9 +230,9 @@ const MinorManagement: React.FC = () => {
     try {
       setLoading(true);
       const updateData: MinorUpdateRequest = {
-        bolumUuid: editingMinor.bolumUuid,
-        bolumAdi: formData.bolumAdi.trim(),
-        anaDalUuid: formData.anaDalUuid,
+        anaDalUuid: editingMinor.anaDalUuid,
+        anaDalAdi: formData.anaDalAdi.trim(),
+        bolumUuid: formData.bolumUuid,
         kurulusTarihi: formData.kurulusTarihi.trim() || null,
       };
       await minorAPI.updateMinor(updateData);
@@ -253,7 +253,7 @@ const MinorManagement: React.FC = () => {
   const handleDeleteMinor = async (minor: Minor) => {
     try {
       setLoading(true);
-      await minorAPI.deleteMinor(minor.bolumUuid);
+      await minorAPI.deleteMinor(minor.anaDalUuid);
       await loadMinors(currentPage, searchFilters);
       Alert.alert("Başarılı", MinorTexts.success.minorDeleted);
     } catch (error: any) {
@@ -296,15 +296,37 @@ const MinorManagement: React.FC = () => {
       <Text style={styles.searchTitle}>{MinorTexts.search.filtersTitle}</Text>
       <View style={styles.filterRow}>
         <View style={styles.filterItem}>
-          <Text style={styles.filterLabel}>Bölüm Adı</Text>
+          <Text style={styles.filterLabel}>Ana Dal Adı</Text>
           <TextInput
             style={styles.filterInput}
-            value={searchFilters.bolumAdi}
+            value={searchFilters.anaDalAdi}
             onChangeText={(text) =>
-              setSearchFilters((prev) => ({ ...prev, bolumAdi: text }))
+              setSearchFilters((prev) => ({ ...prev, anaDalAdi: text }))
             }
             placeholder={MinorTexts.placeholders.searchName}
           />
+        </View>
+
+        <View style={styles.filterItem}>
+          <Text style={styles.filterLabel}>Bölüm</Text>
+          <View style={styles.filterPickerContainer}>
+            <Picker
+              selectedValue={searchFilters.bolumUuid}
+              style={styles.filterPicker}
+              onValueChange={(value) =>
+                setSearchFilters((prev) => ({ ...prev, bolumUuid: value }))
+              }
+            >
+              <Picker.Item label="Tümü" value="" />
+              {majors.map((major) => (
+                <Picker.Item
+                  key={major.bolumUuid}
+                  label={major.bolumAdi}
+                  value={major.bolumUuid}
+                />
+              ))}
+            </Picker>
+          </View>
         </View>
 
         <Pressable style={styles.searchButton} onPress={handleSearch}>
@@ -381,7 +403,7 @@ const MinorManagement: React.FC = () => {
           {Array.isArray(minors) &&
             minors.map((minor, index) => (
               <View
-                key={minor.bolumUuid}
+                key={minor.anaDalUuid}
                 style={[
                   styles.tableRow,
                   index % 2 === 0 && styles.tableRowEven,
@@ -389,11 +411,11 @@ const MinorManagement: React.FC = () => {
               >
                 <View style={styles.colName}>
                   <View style={styles.nameCellContainer}>
-                    <Text style={styles.tableCell}>{minor.bolumAdi}</Text>
+                    <Text style={styles.tableCell}>{minor.anaDalAdi}</Text>
                     <Pressable
                       style={styles.copyButton}
                       onPress={() =>
-                        handleCopyToClipboard(minor.bolumAdi, "Bölüm Adı")
+                        handleCopyToClipboard(minor.anaDalAdi, "Ana Dal Adı")
                       }
                     >
                       <IconSymbol name="copy" size={12} color="#007AFF" />
@@ -403,7 +425,7 @@ const MinorManagement: React.FC = () => {
 
                 <View style={styles.colMajor}>
                   <Text style={styles.tableCell}>
-                    {getMajorName(minor.anaDalUuid)}
+                    {getMajorName(minor.bolumUuid)}
                   </Text>
                 </View>
 
@@ -444,18 +466,21 @@ const MinorManagement: React.FC = () => {
                     <Pressable
                       style={styles.deleteButton}
                       onPress={() => {
-                        Alert.alert(
-                          "Silme Onayı",
-                          `"${minor.bolumAdi}" bölümünü silmek istediğinizden emin misiniz?`,
-                          [
+                        const message = `"${minor.anaDalAdi}" ana dalını silmek istediğinizden emin misiniz?`;
+                        if (Platform.OS === "web") {
+                          if (window.confirm(message)) {
+                            handleDeleteMinor(minor);
+                          }
+                        } else {
+                          Alert.alert("Silme Onayı", message, [
                             { text: "İptal", style: "cancel" },
                             {
                               text: "Sil",
                               style: "destructive",
                               onPress: () => handleDeleteMinor(minor),
                             },
-                          ],
-                        );
+                          ]);
+                        }
                       }}
                     >
                       <IconSymbol name="trash" size={12} color="#FF3B30" />
@@ -552,14 +577,14 @@ const MinorManagement: React.FC = () => {
           <View style={styles.formRow}>
             <Text style={styles.label}>{MinorTexts.labels.minorName}</Text>
             <TextInput
-              style={[styles.input, formErrors.bolumAdi && styles.errorInput]}
-              value={formData.bolumAdi}
+              style={[styles.input, formErrors.anaDalAdi && styles.errorInput]}
+              value={formData.anaDalAdi}
               onChangeText={(text) =>
-                setFormData((prev) => ({ ...prev, bolumAdi: text }))
+                setFormData((prev) => ({ ...prev, anaDalAdi: text }))
               }
               placeholder={MinorTexts.placeholders.enterName}
             />
-            {formErrors.bolumAdi && (
+            {formErrors.anaDalAdi && (
               <Text style={styles.errorText}>
                 {MinorTexts.validation.nameMin}
               </Text>
@@ -571,14 +596,14 @@ const MinorManagement: React.FC = () => {
             <View
               style={[
                 styles.pickerContainer,
-                formErrors.anaDalUuid && styles.errorInput,
+                formErrors.bolumUuid && styles.errorInput,
               ]}
             >
               <Picker
-                selectedValue={formData.anaDalUuid}
+                selectedValue={formData.bolumUuid}
                 style={styles.picker}
                 onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, anaDalUuid: value }))
+                  setFormData((prev) => ({ ...prev, bolumUuid: value }))
                 }
               >
                 <Picker.Item
@@ -587,14 +612,14 @@ const MinorManagement: React.FC = () => {
                 />
                 {majors.map((major) => (
                   <Picker.Item
-                    key={major.anaDalUuid}
-                    label={major.anaDalAdi}
-                    value={major.anaDalUuid}
+                    key={major.bolumUuid}
+                    label={major.bolumAdi}
+                    value={major.bolumUuid}
                   />
                 ))}
               </Picker>
             </View>
-            {formErrors.anaDalUuid && (
+            {formErrors.bolumUuid && (
               <Text style={styles.errorText}>
                 {MinorTexts.validation.majorRequired}
               </Text>
@@ -646,7 +671,7 @@ const MinorManagement: React.FC = () => {
     if (!editingMinor) {
       return (
         <View style={styles.formContainer}>
-          <Text>Bölüm bulunamadı</Text>
+          <Text>Ana dal bulunamadı</Text>
         </View>
       );
     }
@@ -672,7 +697,7 @@ const MinorManagement: React.FC = () => {
         >
           <View style={styles.profileSectionsContainer}>
             <Text style={styles.profileSubtitle}>
-              Bölümün detaylı bilgilerini görüntüleyin
+              Ana dalın detaylı bilgilerini görüntüleyin
             </Text>
 
             <View style={styles.infoBox}>
@@ -681,11 +706,14 @@ const MinorManagement: React.FC = () => {
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>{MinorTexts.labels.name}</Text>
                 <View style={styles.copyableRow}>
-                  <Text style={styles.infoValue}>{editingMinor.bolumAdi}</Text>
+                  <Text style={styles.infoValue}>{editingMinor.anaDalAdi}</Text>
                   <Pressable
                     style={styles.copyButton}
                     onPress={() =>
-                      handleCopyToClipboard(editingMinor.bolumAdi, "Bölüm Adı")
+                      handleCopyToClipboard(
+                        editingMinor.anaDalAdi,
+                        "Ana Dal Adı",
+                      )
                     }
                   >
                     <IconSymbol name="copy" size={12} color="#007AFF" />
@@ -698,7 +726,7 @@ const MinorManagement: React.FC = () => {
                   {MinorTexts.labels.majorLabel}
                 </Text>
                 <Text style={styles.infoValue}>
-                  {getMajorName(editingMinor.anaDalUuid)}
+                  {getMajorName(editingMinor.bolumUuid)}
                 </Text>
               </View>
 
@@ -719,7 +747,7 @@ const MinorManagement: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <NavigationBar userName="Bölüm" />
+      <NavigationBar userName="Ana Dal" />
       <View style={styles.mainContent}>
         {isAdmin && (
           <>
@@ -821,6 +849,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     backgroundColor: "#fff",
     height: 40,
+  },
+  filterPickerContainer: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 6,
+    backgroundColor: "#fff",
+    height: 40,
+    justifyContent: "center",
+  },
+  filterPicker: {
+    height: 40,
+    fontSize: 14,
+    color: "#333",
   },
   searchButton: {
     flexDirection: "row",

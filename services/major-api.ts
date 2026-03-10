@@ -74,8 +74,8 @@ async function apiCall<T>(
 
 // MAJOR INTERFACES
 export interface Major {
-  anaDalUuid: string;
-  anaDalAdi: string;
+  bolumUuid: string;
+  bolumAdi: string;
   fakulteUuid: string;
   kurulusTarihi: string | null;
   olusturmaTarihi?: string;
@@ -83,17 +83,17 @@ export interface Major {
 }
 
 export interface MajorCreateRequest {
-  anaDalAdi: string;
+  bolumAdi: string;
   fakulteUuid: string;
   kurulusTarihi: string | null;
 }
 
 export interface MajorUpdateRequest extends MajorCreateRequest {
-  anaDalUuid: string;
+  bolumUuid: string;
 }
 
 export interface GetMajorsParams {
-  anaDalAdi?: string;
+  bolumAdi?: string;
   fakulteUuid?: string;
   kurulusTarihi?: string;
   olusturmaTarihi?: string;
@@ -115,7 +115,7 @@ export const majorAPI = {
   async getMajors(params: GetMajorsParams = {}): Promise<GetMajorsResponse> {
     const queryParams = new URLSearchParams();
 
-    if (params.anaDalAdi) queryParams.append("AnaDalAdi", params.anaDalAdi);
+    if (params.bolumAdi) queryParams.append("BolumAdi", params.bolumAdi);
     if (params.fakulteUuid)
       queryParams.append("FakulteUuid", params.fakulteUuid);
     if (params.kurulusTarihi)
@@ -134,7 +134,7 @@ export const majorAPI = {
     try {
       const response = await apiCall<any>(endpoint, "GET");
 
-      let majorsData = response.anaDallar || response.data || response || [];
+      let majorsData = response.bolumler || response.data || response || [];
       if (!Array.isArray(majorsData)) majorsData = [];
 
       return {
@@ -163,7 +163,7 @@ export const majorAPI = {
     return await apiCall<any>("/api/Major/major", "PUT", data);
   },
 
-  async deleteMajor(anaDalUuid: string): Promise<any> {
-    return await apiCall<any>("/api/Major/major", "DELETE", { anaDalUuid });
+  async deleteMajor(bolumUuid: string): Promise<any> {
+    return await apiCall<any>("/api/Major/major", "DELETE", { bolumUuid });
   },
 };

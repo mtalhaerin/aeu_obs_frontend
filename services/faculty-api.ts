@@ -166,8 +166,6 @@ export const facultyAPI = {
   },
 
   async deleteFaculty(fakulteUuid: string): Promise<any> {
-    return await apiCall<any>("/api/Faculty/faculty", "DELETE", {
-      fakulteUuid,
-    });
+    return await apiCall<any>("/api/Faculty/faculty", "DELETE", { fakulteUuid });
   },
 };

@@ -74,27 +74,27 @@ async function apiCall<T>(
 
 // MINOR INTERFACES
 export interface Minor {
-  bolumUuid: string;
-  bolumAdi: string;
   anaDalUuid: string;
+  anaDalAdi: string;
+  bolumUuid: string;
   kurulusTarihi: string | null;
   olusturmaTarihi?: string;
   guncellemeTarihi?: string;
 }
 
 export interface MinorCreateRequest {
-  bolumAdi: string;
-  anaDalUuid: string;
+  anaDalAdi: string;
+  bolumUuid: string;
   kurulusTarihi: string | null;
 }
 
 export interface MinorUpdateRequest extends MinorCreateRequest {
-  bolumUuid: string;
+  anaDalUuid: string;
 }
 
 export interface GetMinorsParams {
-  bolumAdi?: string;
-  anaDalUuid?: string;
+  anaDalAdi?: string;
+  bolumUuid?: string;
   kurulusTarihi?: string;
   olusturmaTarihi?: string;
   guncellemeTarihi?: string;
@@ -115,8 +115,8 @@ export const minorAPI = {
   async getMinors(params: GetMinorsParams = {}): Promise<GetMinorsResponse> {
     const queryParams = new URLSearchParams();
 
-    if (params.bolumAdi) queryParams.append("BolumAdi", params.bolumAdi);
-    if (params.anaDalUuid) queryParams.append("AnaDalUuid", params.anaDalUuid);
+    if (params.anaDalAdi) queryParams.append("AnaDalAdi", params.anaDalAdi);
+    if (params.bolumUuid) queryParams.append("BolumUuid", params.bolumUuid);
     if (params.kurulusTarihi)
       queryParams.append("KurulusTarihi", params.kurulusTarihi);
     if (params.olusturmaTarihi)
@@ -133,7 +133,12 @@ export const minorAPI = {
     try {
       const response = await apiCall<any>(endpoint, "GET");
 
-      let minorsData = response.bolumler || response.data || response || [];
+      let minorsData =
+        response.anaDallar ||
+        response.bolumler ||
+        response.data ||
+        response ||
+        [];
       if (!Array.isArray(minorsData)) minorsData = [];
 
       return {
@@ -162,7 +167,7 @@ export const minorAPI = {
     return await apiCall<any>("/api/Minor/minor", "PUT", data);
   },
 
-  async deleteMinor(bolumUuid: string): Promise<any> {
-    return await apiCall<any>("/api/Minor/minor", "DELETE", { bolumUuid });
+  async deleteMinor(anaDalUuid: string): Promise<any> {
+    return await apiCall<any>("/api/Minor/minor", "DELETE", { anaDalUuid });
   },
 };
